@@ -10,10 +10,6 @@
 // disable implicit wire declaration
 `default_nettype none
 
-`timescale 1ns / 1ps
-// disable implicit wire declaration
-`default_nettype none
-
 module Branch_And_PC_Unit(
         input wire clk, rst, gwe,
         input wire [15:0] pc_plus_one,
@@ -48,7 +44,7 @@ module Branch_And_PC_Unit(
         assign is_all_zero = o_nzp_reg_val & insn[11:9];
         assign o_next_pc = (o_decoder_is_control_insn == 1 || (o_decoder_is_branch == 1 && (is_all_zero != 3'b000))) ? o_alu_result : pc_plus_one;
         assign test_nzp_new_bits = i_regfile_wdata_sign;
-    endmodule
+endmodule
 
 //  Single_cycle Module Begins  //
     module lc4_processor(
