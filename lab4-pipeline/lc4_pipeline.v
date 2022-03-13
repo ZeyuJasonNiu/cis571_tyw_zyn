@@ -97,12 +97,6 @@ module lc4_processor
     wire    o_decoder_r1re, o_decoder_r2re, o_decoder_regfile_we, 
             o_decoder_nzp_we, o_decoder_pc_plus_one, o_decoder_is_load, 
             o_decoder_is_store, o_decoder_is_branch, o_decoder_is_control_insn;
-
-    // Wires used for Bypass Operations //
-    wire [15:0] Alu_A_Bypass, Alu_B_Bypass, WM_Bypass;
-    wire [15:0] Alu_A_WX_bypass, Alu_A_MX_bypass, Alu_B_WX_bypass, Alu_B_WM_bypass;
-    wire [1:0] stall_logic;
-    wire [1:0] Alu_A_Bypass_Sel, Alu_B_Bypass_Sel;
             
     lc4_decoder Pipe_Decoder (    
         .insn(i_cur_insn),
@@ -130,6 +124,15 @@ module lc4_processor
         .i_wdata(i_regfile_wdata), 
         .i_rd_we(o_decoder_regfile_we));
     
+
+    // Wires used for Bypass Operations //
+    wire [31:0] o_decoder_bus;
+    wire [15:0] alu_result_bus,
+    wire [15:0] aluA_Bypass, aluB_Bypass, WM_Bypass;
+    wire [15:0] aluA_WX_bypass, alu_A_MX_bypass, alu_B_WX_bypass, alu_B_MX_bypass, WM_bypass;
+    wire [1:0] stall_logic;
+    wire [1:0] Alu_A_Bypass_Sel, Alu_B_Bypass_Sel;
+
     
     /***** Pipeline Stage3: Execute (ALU) *****/
     wire [15:0] o_alu_result;
