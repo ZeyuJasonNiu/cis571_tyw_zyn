@@ -97,6 +97,14 @@ module lc4_processor
     wire    o_decoder_r1re, o_decoder_r2re, o_decoder_regfile_we, 
             o_decoder_nzp_we, o_decoder_pc_plus_one, o_decoder_is_load, 
             o_decoder_is_store, o_decoder_is_branch, o_decoder_is_control_insn;
+
+    // Wires used for Bypass Operations //
+    wire [15:0] Alu_A_Bypass, Alu_B_Bypass, WM_Bypass;
+    wire [1:0] stall_logic;
+    wire [15:0] ;
+    wire [15:0] ;
+
+
             
     lc4_decoder Pipe_Decoder (    
         .insn(i_cur_insn),
