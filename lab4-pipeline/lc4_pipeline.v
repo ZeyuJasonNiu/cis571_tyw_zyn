@@ -100,11 +100,9 @@ module lc4_processor
 
     // Wires used for Bypass Operations //
     wire [15:0] Alu_A_Bypass, Alu_B_Bypass, WM_Bypass;
+    wire [15:0] Alu_A_WX_bypass, Alu_A_MX_bypass, Alu_B_WX_bypass, Alu_B_WM_bypass;
     wire [1:0] stall_logic;
-    wire [15:0] ;
-    wire [15:0] ;
-
-
+    wire [1:0] Alu_A_Bypass_Sel, Alu_B_Bypass_Sel;
             
     lc4_decoder Pipe_Decoder (    
         .insn(i_cur_insn),
