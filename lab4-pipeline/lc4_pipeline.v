@@ -128,12 +128,26 @@ module lc4_processor
     // Wires used for Bypass Operations //
     wire [31:0] o_decoder_bus;
     wire [15:0] alu_result_bus,
-    wire [15:0] aluA_Bypass, aluB_Bypass, WM_Bypass;
-    wire [15:0] aluA_WX_bypass, alu_A_MX_bypass, alu_B_WX_bypass, alu_B_MX_bypass, WM_bypass;
+    wire [15:0] aluA_bypass_res, aluB_bypass_res, WM_Bypass_res;
+    wire [15:0] aluA_WX_bypass, aluA_MX_bypass, aluB_WX_bypass, aluB_MX_bypass, WM_bypass;
     wire [1:0] stall_logic;
-    wire [1:0] Alu_A_Bypass_Sel, Alu_B_Bypass_Sel;
+    wire [1:0] aluA_bypass_sel, aluB_bypass_sel;
 
-    
+    // Register holding result from different stages
+    Nbit_reg #(32) pc_reg (.in(o_decoder_bus), .out(o_decoder_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) pc_reg (.in(alu_result_bus), .out(alu_result_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    // Register for WX and MX bypass
+    Nbit_reg #(16) pc_reg (.in(aluA_WX_bypass), .out(aluA_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) pc_reg (.in(aluA_MX_bypass), .out(aluA_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) pc_reg (.in(alu_B_WX_bypass), .out(alu_B_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) pc_reg (.in(aluB_WX_bypass), .out(aluB_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) pc_reg (.in(alu_B_MX_bypass), .out(alu_B_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2) pc_reg (.in(aluA_bypass_sel), .out(aluA_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2) pc_reg (.in(aluB_bypass_sel), .out(aluB_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+
+
     /***** Pipeline Stage3: Execute (ALU) *****/
     wire [15:0] o_alu_result;
     lc4_alu Pipe_Alu ( 
