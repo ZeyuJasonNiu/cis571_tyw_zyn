@@ -145,6 +145,7 @@ module lc4_processor
     Nbit_reg #(16) pc_reg (.in(alu_B_MX_bypass), .out(alu_B_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2) pc_reg (.in(aluA_bypass_sel), .out(aluA_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2) pc_reg (.in(aluB_bypass_sel), .out(aluB_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2) pc_reg (.in(aluB_bypass_sel), .out(aluB_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
 
 
