@@ -71,7 +71,8 @@
     Nbit_reg #(16, 16'b0)    w_pc_reg (.in(m2w_pc), .out(w_o_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     // Instructions registers //
-    wire [33:0]     d_i_bus, d2x_bus, d2x_bus_tmp, d2x_bus_final, x2m_bus, m2w_bus, w_o_bus;
+    wire [15:0]     d_i_bus, d2x_bus_tmp;
+    wire [33:0]     d2x_bus, d2x_bus_tmp, d2x_bus_final, x2m_bus, m2w_bus, w_o_bus;
     wire load2use;
 
     Nbit_reg #(16, 16'b0) d_insn_reg (.in(d_i_bus), .out(d2x_bus_tmp), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
@@ -79,7 +80,7 @@
     Nbit_reg #(34, 34'b0) m_insn_reg (.in(x2m_bus), .out(m2w_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg (.in(m2w_bus), .out(w_o_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    wire x_br_taken_or_ctrl; 
+    wire x_br_taken_or_ctrl, branch_taken; 
     wire [2:0] is_all_zero;
     wire [2:0] o_nzp_reg_val;  
 
