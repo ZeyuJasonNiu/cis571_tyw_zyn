@@ -50,16 +50,6 @@
     assign led_data = switch_data;
 
     
-    /* DO NOT MODIFY THIS CODE */
-    // Always execute one instruction each cycle (test_stall will get used in your pipelined processor)
-    assign test_stall = 2'b0; 
-
-    // pc wires attached to the PC register's ports
-    
-
-    // Program counter register, starts at 8200h at bootup
-
-    /* END DO NOT MODIFY THIS CODE */     
 
     /**** Registers for intermediate stages ****/
     // PC registers 
@@ -178,7 +168,6 @@
         .is_branch(d2x_bus[17]), 
         .is_control_insn(d2x_bus[16]),
         .insn(d2x_bus[15:0]));
-
 
     wire [15:0] o_regfile_rs, o_regfile_rt;              
     lc4_regfile Pipeline_Regfile (
