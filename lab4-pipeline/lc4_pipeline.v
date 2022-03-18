@@ -89,7 +89,7 @@ module lc4_processor
     wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
 
     // Program counter register, starts at 8200h at bootup
-    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    //Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(F_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     
    /***** Pipeline Stage2: Decoder *****/
@@ -99,15 +99,15 @@ module lc4_processor
             o_decoder_is_store, o_decoder_is_branch, o_decoder_is_control_insn;
             
     lc4_decoder Pipe_Decoder (    
-        .insn(o_decoder_bus[15:0]),
-        .r1sel(o_decoder_bus[33:31]), .r1re(o_decoder_bus[27]),
-        .r2sel(o_decoder_bus[30:28]), .r2re(o_decoder_bus[26]),
-        .wsel(o_decoder_bus[25:23]), .regfile_we(o_decoder_bus[22]),
-        .nzp_we(o_decoder_bus[21]), 
-        .select_pc_plus_one(o_decoder_bus[20]),
-        .is_load(o_decoder_bus[19]), .is_store(o_decoder_bus[18]),
-        .is_branch(o_decoder_bus[17]), 
-        .is_control_insn(o_decoder_bus16));
+        .insn(d2x_decoder_bus[15:0]),
+        .r1sel(d2x_decoder_bus[33:31]), .r1re(d2x_decoder_bus[27]),
+        .r2sel(d2x_decoder_bus[30:28]), .r2re(d2x_decoder_bus[26]),
+        .wsel(d2x_decoder_bus[25:23]), .regfile_we(d2x_decoder_bus[22]),
+        .nzp_we(d2x_decoder_bus[21]), 
+        .select_pc_plus_one(d2x_decoder_bus[20]),
+        .is_load(d2x_decoder_bus[19]), .is_store(d2x_decoder_bus[18]),
+        .is_branch(d2x_decoder_bus[17]), 
+        .is_control_insn(d2x_decoder_bus[16]));
     
 
     // lc4_decoder Pipe_Decoder (    
@@ -128,13 +128,13 @@ module lc4_processor
         .clk(clk),
         .gwe(gwe),
         .rst(rst),
-        .i_rs(o_decoder_bus[33:31]), 
+        .i_rs(d2x_decoder_bus[33:31]), 
         .o_rs_data(o_regfile_rs),
-        .i_rt(o_decoder_bus[30:28]), 
+        .i_rt(d2x_decoder_bus[30:28]), 
         .o_rt_data(o_regfile_rt),
-        .i_rd(o_decoder_bus[25:23]), 
+        .i_rd(d2x_decoder_bus[25:23]), 
         .i_wdata(i_regfile_wdata), 
-        .i_rd_we(o_decoder_bus[22]));
+        .i_rd_we(d2x_decoder_bus[22]));
     
     /***** Pipeline Stage3: Execute (ALU) *****/
     wire [15:0] o_alu_result;
@@ -146,27 +146,26 @@ module lc4_processor
         .o_result(o_alu_result));
 
     // Wires used for Bypass Operations //
-    wire [33:0] o_decoder_bus;
+    wire [33:0] d2x_decoder_bus;
     wire [15:0] alu_result_bus,
     wire [15:0] aluA_bypass_res, aluB_bypass_res, WM_Bypass_res;
-    wire [15:0] aluA_WX_bypass, aluA_MX_bypass, aluB_WX_bypass, aluB_MX_bypass, WM_bypass;
+    wire [15:0] aluA_WX_bypass, aluA_MX_bypass, aluB_WX_bypass, aluB_MX_bypass, alu_bypass_ctrl;
+    wire [15:0] WM_bypass
     wire [1:0] stall_logic;
     wire [1:0] aluA_bypass_sel, aluB_bypass_sel;
 
     // Register for FD
-    Nbit_reg #(16) f_pc (.in(next_pc), .out(o_decoder_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16 16'h8200) fd_pc (.in(next_pc), .out(fd_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(alu_result_bus), .out(alu_result_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     // Register for DX
-    Nbit_reg #(16) D_pc (.in(aluA_WX_bypass), .out(aluA_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) dx_pc (.in(fd_pc), .out(dx_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(aluA_MX_bypass), .out(aluA_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(alu_B_WX_bypass), .out(alu_B_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16) pc_reg (.in(aluB_WX_bypass), .out(aluB_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16) pc_reg (.in(alu_B_MX_bypass), .out(alu_B_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2) pc_reg (.in(aluA_bypass_sel), .out(aluA_bypass_sel), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
 
     // Register for XM
-    Nbit_reg #(16) X_reg (.in(aluA_WX_bypass), .out(aluA_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16) xm_pc (.in(dx_pc), .out(xm_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(aluA_MX_bypass), .out(aluA_MX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(alu_B_WX_bypass), .out(alu_B_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16) pc_reg (.in(aluB_WX_bypass), .out(aluB_WX_bypass), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
