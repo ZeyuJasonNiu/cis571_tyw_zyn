@@ -95,7 +95,7 @@
     // Regiters for A, B, O, D //
     wire [15:0]     x_A_i, x_A_o, x_B_i, x_B_o,
                     m_B_o, m_O_i, m_O_o, 
-                    w_O_o, w_D_i, w_O_i;
+                    w_O_o, w_D_i, w_D_o;
                     
     Nbit_reg #(16, 16'b0) x_A_reg (.in(x_A_i), .out(x_A_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) x_B_reg (.in(x_B_i), .out(x_B_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -132,7 +132,7 @@
     assign w_nzp_i = ((m2w_bus[19]==1)) ? nzp_ld : m_nzp_o;
 
     assign nzp_alu =    ($signed(o_alu_result) > 0) ? 3'b001: 
-                        (alu_output == 0) ? 3'b010: 
+                        (o_alu_result == 0) ? 3'b010: 
                         3'b100;
     assign nzp_ld  =    ($signed(i_cur_dmem_data) > 0) ? 3'b001:
                         (i_cur_dmem_data == 0) ? 3'b010: 
@@ -160,7 +160,7 @@
         .we(x2m_bus[21]),
         .gwe(gwe),
         .rst(rst));
-    defparam NZP_Reg.n = 3;
+    defparam Pipeline_NZP_Reg.n = 3;
 
     lc4_decoder Pipeline_Decoder (
         .r1sel(d2x_bus[33:31]), 
