@@ -7,7 +7,7 @@
 // disable implicit wire declaration
 `default_nettype none
 
-//  Single_cycle Module Begins  //
+//  Pipeline Module Begins  //
     module lc4_processor(
         input  wire        clk,                // Main clock
         input  wire        rst,                // Global reset
@@ -40,7 +40,7 @@
     
         input  wire [7:0]  switch_data,        // Current settings of the Zedboard switches
         output wire [7:0]  led_data            // Which Zedboard LEDs should be turned on?
-        );
+    );
 
     // By default, assign LEDs to display switch inputs to avoid warnings about
     // disconnected ports. Feel free to use this for debugging input/output if
@@ -91,9 +91,9 @@
     Nbit_reg #(34, 34'b0) m_insn_reg (.in(x2m_bus), .out(m2w_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg (.in(m2w_bus), .out(w_o_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign  d_i_bus = (x_br_taken_or_ctrl == 1) ? {16{1'b0}} : i_cur_insn;
+    assign  d_i_bus = (x_br_taken_or_ctrl == 1) ? {16{1'b0}} : i_cur_insn;                  // misprediction and control signal causes flush
     assign  d2x_bus[15:0] = d2x_bus_tmp;
-    assign  d2x_bus_final = ((load2use | x_br_taken_or_ctrl) == 1) ? {34{1'b0}} : d2x_bus;
+    assign  d2x_bus_final = ((load2use | x_br_taken_or_ctrl) == 1) ? {34{1'b0}} : d2x_bus;  // load2use also causes flush, but only judged after D stage//
 
 
     // Wires to calculating br_predict and next PC //
@@ -106,11 +106,11 @@
     assign  next_pc = (x_br_taken_or_ctrl == 1) ? o_alu_result : f2d_pc_plus_one;
 
 
-    // Regiters for A, B, O, D //
+    // Regiters for Intermediate A, B, O, D Input/Output //
     wire [15:0]     x_A_i, x_A_o, x_B_i, x_B_o,
                     m_B_o, m_O_i, m_O_o, 
                     w_O_o, w_D_i, w_D_o;
-    wire [15:0]     write_back;
+    wire [15:0]     write_back;                  // Determine the value that writes back to the Regfiles //
                     
     Nbit_reg #(16, 16'b0) x_A_reg (.in(x_A_i), .out(x_A_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) x_B_reg (.in(x_B_i), .out(x_B_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -122,7 +122,7 @@
     assign  x_A_i = ((w_o_bus[27:25] == d2x_bus[33:31]) && w_o_bus[22]) ? write_back : o_regfile_rs; 
     assign  x_B_i = ((w_o_bus[27:25] == d2x_bus[30:28]) && w_o_bus[22]) ? write_back : o_regfile_rt;
     assign  m_O_i = (d2x_bus[16] == 1) ? d2x_pc : o_alu_result;                     
-    assign  write_back = (w_o_bus[19] == 1) ? w_D_o : w_O_o;                        //Write back to register
+    assign  write_back = (w_o_bus[19] == 1) ? w_D_o : w_O_o;        // Write back to register
 
 
     // Registers for stall cycle //
@@ -135,8 +135,8 @@
     Nbit_reg #(2, 2'b10) w_stall_reg (.in(m_stall_o), .out(test_stall), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign  d_stall_i = (x_br_taken_or_ctrl == 1) ? 2'd2 : 2'd0;
-    assign  x_stall_i = (load2use == 1) ? 2'd3 : 
-                        (x_br_taken_or_ctrl == 1) ? 2'd2 : 
+    assign  x_stall_i = (load2use == 1) ? 2'd3 :                    // load2use only judged after the Decoder stage
+                        (x_br_taken_or_ctrl == 1) ? 2'd2 :          // (Initial predict all set Not-Taken) Wrong predic and control both cause flush
                         d_stall_o;
 
 
@@ -147,8 +147,7 @@
     Nbit_reg #(3, 3'b0) m_nzp_reg (.in(i_regfile_wdata_sign), .out(m_nzp_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) w_nzp_reg (.in(w_nzp_i), .out(test_nzp_new_bits), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign w_nzp_i =    ((m2w_bus[19]==1)) ? nzp_ld : m_nzp_o;
-
+    assign w_nzp_i =    ((m2w_bus[19]==1)) ? nzp_ld : m_nzp_o;          // For load insn, nzp_ld are independently calculated
     assign nzp_alu =    ($signed(o_alu_result) > 0) ? 3'b001: 
                         (o_alu_result == 0) ? 3'b010: 
                         3'b100;
@@ -209,7 +208,7 @@
     
     /***** Pipeline Stage3: Execute (ALU) *****/
     wire    [15:0] o_alu_result, rs_bypass_res, rt_bypass_res, wm_bypass_res;
-    
+
     lc4_alu Pipeline_Alu ( 
             .i_insn(x2m_bus[15:0]),
             .i_pc(x2m_pc),
