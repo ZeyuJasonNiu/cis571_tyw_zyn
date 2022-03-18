@@ -96,6 +96,7 @@
     wire [15:0]     x_A_i, x_A_o, x_B_i, x_B_o,
                     m_B_o, m_O_i, m_O_o, 
                     w_O_o, w_D_i, w_D_o;
+    wire [15:0]     write_back;
                     
     Nbit_reg #(16, 16'b0) x_A_reg (.in(x_A_i), .out(x_A_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) x_B_reg (.in(x_B_i), .out(x_B_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
