@@ -63,26 +63,21 @@
     // Instructions registers //
     wire [15:0]     d_i_bus, d2x_bus_tmp;
     wire [33:0]     d2x_bus, d2x_bus_final, x2m_bus, m2w_bus, w_o_bus;
+    wire x_br_taken_or_ctrl, branch_taken; 
+    wire [2:0] is_all_zero;
+    wire [2:0] o_nzp_reg_val;
     wire load2use;
-
-    assign d_i_bus = (x_br_taken_or_ctrl == 1) ? {16{1'b0}} : i_cur_insn;
 
     Nbit_reg #(16, 16'b0) d_insn_reg (.in(d_i_bus), .out(d2x_bus_tmp), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) x_insn_reg (.in(d2x_bus_final), .out(x2m_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) m_insn_reg (.in(x2m_bus), .out(m2w_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg (.in(m2w_bus), .out(w_o_bus), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    // wire for NZP and branch controls //
-    wire x_br_taken_or_ctrl, branch_taken; 
-    wire [2:0] is_all_zero;
-    wire [2:0] o_nzp_reg_val;  
-
+    assign d_i_bus = (x_br_taken_or_ctrl == 1) ? {16{1'b0}} : i_cur_insn;
     assign is_all_zero = o_nzp_reg_val & x2m_bus[11:9];
     assign branch_taken = ((is_all_zero != 3'b0) && (x2m_bus[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl = branch_taken || x2m_bus[16];
     assign next_pc = (x_br_taken_or_ctrl == 1) ? o_alu_result : f2d_pc_plus_one;
-
-    assign d2x_bus_tmp = (x_br_taken_or_ctrl == 1) ? {16{1'b0}} : i_cur_insn;
     assign d2x_bus[15:0] = d2x_bus_tmp;
     assign d2x_bus_final = ((load2use | x_br_taken_or_ctrl) == 1) ? {34{1'b0}} : d2x_bus;
 
