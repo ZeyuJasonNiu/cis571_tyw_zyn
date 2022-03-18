@@ -114,10 +114,10 @@
     wire[15:0]  d_stall_i, d_stall_o,
                 x_stall_i, x_stall_o,m_stall_o;
 
-    Nbit_reg #(16, 16'b0) d_stall_reg (.in(d_stall_i), .out(d_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) x_stall_reg (.in(x_stall_i), .out(x_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) m_stall_reg (.in(x_stall_o), .out(m_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) w_stall_reg (.in(m_stall_o), .out(test_stall), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) d_stall_reg (.in(d_stall_i), .out(d_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) x_stall_reg (.in(x_stall_i), .out(x_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) m_stall_reg (.in(x_stall_o), .out(m_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) w_stall_reg (.in(m_stall_o), .out(test_stall), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign d_stall_i =  (x_br_taken_or_ctrl == 1) ? 2'd2 : 2'd0;
     assign x_stall_i =  (load2use == 1) ? 2'd3 : 
