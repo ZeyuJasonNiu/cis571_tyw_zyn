@@ -72,7 +72,7 @@
 
     // Instructions registers //
     wire [15:0]     d_i_bus, d2x_bus_tmp;
-    wire [33:0]     d2x_bus, d2x_bus_tmp, d2x_bus_final, x2m_bus, m2w_bus, w_o_bus;
+    wire [33:0]     d2x_bus, d2x_bus_final, x2m_bus, m2w_bus, w_o_bus;
     wire load2use;
 
     Nbit_reg #(16, 16'b0) d_insn_reg (.in(d_i_bus), .out(d2x_bus_tmp), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
