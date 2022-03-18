@@ -111,7 +111,7 @@
     assign write_back = (w_o_bus[19] == 1) ? w_D_o : w_O_o;                     //Write back to register
 
     // Registers for stall cycle //
-    wire[15:0]  d_stall_i, d_stall_o,
+    wire[1:0]  d_stall_i, d_stall_o,
                 x_stall_i, x_stall_o,m_stall_o;
 
     Nbit_reg #(2, 2'b10) d_stall_reg (.in(d_stall_i), .out(d_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -147,6 +147,7 @@
                                     nzp_alu;
 
     //  Register for dmem parameter's
+    wire [15:0] w_dmem_data;
     Nbit_reg #(1, 1'b0)     w_dmem_we_reg (.in(o_dmem_we), .out(test_dmem_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)   w_dmem_addr_reg (.in(o_dmem_addr), .out(test_dmem_addr), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)   w_dmem_data_reg (.in(w_dmem_data), .out(test_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
