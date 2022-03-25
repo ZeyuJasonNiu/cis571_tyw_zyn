@@ -121,7 +121,7 @@
     
     assign  x_A_i = ((w_o_bus[27:25] == d2x_bus[33:31]) && w_o_bus[22]) ? write_back : o_regfile_rs; 
     assign  x_B_i = ((w_o_bus[27:25] == d2x_bus[30:28]) && w_o_bus[22]) ? write_back : o_regfile_rt;
-    assign  m_O_i = (x2_bus[16] == 1) ? d2x_pc : o_alu_result;                     
+    assign  m_O_i = (x2m_bus[16] == 1) ? d2x_pc : o_alu_result;                     
     assign  write_back = (w_o_bus[19] == 1) ? w_D_o : w_O_o;        // Write back to register
 
 
