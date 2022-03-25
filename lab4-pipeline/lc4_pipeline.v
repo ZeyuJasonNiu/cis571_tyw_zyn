@@ -148,7 +148,8 @@
     Nbit_reg #(3, 3'b0) w_nzp_reg (.in(w_nzp_i), .out(test_nzp_new_bits), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign w_nzp_i =    ((m2w_bus[19]==1)) ? nzp_ld : m_nzp_o;          // For load insn, nzp_ld are independently calculated
-    assign nzp_alu =    ($signed(o_alu_result) > 0) ? 3'b001:  
+    assign nzp_alu =    ($signed(o_alu_result) > 0) ? 3'b001: 
+                        (o_alu_result == 0) ? 3'b010: 
                         3'b100;
     assign nzp_ld  =    ($signed(i_cur_dmem_data) > 0) ? 3'b001:
                         (i_cur_dmem_data == 0) ? 3'b010: 
