@@ -8,7 +8,7 @@
 `default_nettype none
 
 //  Pipeline Module Begins  //
-    module lc4_processor(
+    module Pipe_linelc4_processor(
         input  wire        clk,                // Main clock
         input  wire        rst,                // Global reset
         input  wire        gwe,                // Global we for single-step clock
