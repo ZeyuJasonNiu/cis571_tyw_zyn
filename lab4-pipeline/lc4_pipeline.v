@@ -74,13 +74,9 @@
     wire [2:0] o_nzp_reg_val;
     wire bu_nzp_reduced;
 
-//     assign is_all_zero = o_nzp_reg_val & x2m_bus[11:9];
-//     assign branch_taken = ((is_all_zero != 3'b0) && (x2m_bus[17] == 1)) ? 1'b1 : 1'b0;
-//     assign x_br_taken_or_ctrl = branch_taken || x2m_bus[16];
-//     assign next_pc = (x_br_taken_or_ctrl == 1) ? o_alu_result : f2d_pc_plus_one;
     assign is_all_zero = o_nzp_reg_val & x2m_bus[11:9];
-    assign bu_nzp_reduced = |is_all_zero;
-    assign x_br_taken_or_ctrl = (bu_nzp_reduced & x2m_bus[17]) || x2m_bus[16]; //XM_decode_bus[17] = is_branch. XM_decode_bus[16] = is_control
+    assign branch_taken = ((is_all_zero != 3'b0) && (x2m_bus[17] == 1)) ? 1'b1 : 1'b0;
+    assign x_br_taken_or_ctrl = branch_taken || x2m_bus[16];
     assign next_pc = (x_br_taken_or_ctrl == 1) ? o_alu_result : f2d_pc_plus_one;
 
     assign d2x_bus[15:0] = d2x_bus_tmp;
