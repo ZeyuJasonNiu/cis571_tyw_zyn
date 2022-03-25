@@ -72,7 +72,6 @@
     wire x_br_taken_or_ctrl, branch_taken; 
     wire [2:0] is_all_zero;
     wire [2:0] o_nzp_reg_val;
-    wire bu_nzp_reduced;
 
     assign is_all_zero = o_nzp_reg_val & x2m_bus[11:9];
     assign branch_taken = ((is_all_zero != 3'b0) && (x2m_bus[17] == 1)) ? 1'b1 : 1'b0;
@@ -97,7 +96,7 @@
     
     assign x_A_i = ((w_o_bus[27:25] == d2x_bus[33:31]) && w_o_bus[22]) ? write_back : o_regfile_rs; 
     assign x_B_i = ((w_o_bus[27:25] == d2x_bus[30:28]) && w_o_bus[22]) ? write_back : o_regfile_rt;
-    assign m_O_i = (d2x_bus[16] == 1) ? d2x_pc : o_alu_result;
+    assign m_O_i = (x2m_bus[16] == 1) ? d2x_pc : o_alu_result;
     assign write_back = (w_o_bus[19] == 1) ? w_D_o : w_O_o;                     //Write back to register
 
     // Registers for stall cycle //
