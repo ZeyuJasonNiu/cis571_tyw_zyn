@@ -109,20 +109,8 @@ module lc4_regfile_ss #(parameter n = 16)
     .rv4(rv4), .rv5(rv5), .rv6(rv6), .rv7(rv7), .o_data(o_rt_B));  
 
     //Bypass write-in value to output
-    assign o_rs_data_A =    ((i_rs_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
-                            ((i_rs_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rs_A;
-
-    assign o_rt_data_A =    ((i_rt_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
-                            ((i_rt_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_A;
-
-    assign o_rs_data_B =    ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : 
-                            ((i_rs_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rs_B;
-
-    assign o_rt_data_B =    ((i_rt_B == i_rd_B) & i_rd_we_B) ? i_wdata_B :
-                            ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
-                            
     // assign o_rs_data_A =    ((i_rs_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
-    //                         ((i_rs_A == i_rd_B) & i_rd_we_B) ? i_rd_we_B : o_rs_A;
+    //                         ((i_rs_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rs_A;
 
     // assign o_rt_data_A =    ((i_rt_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
     //                         ((i_rt_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_A;
@@ -132,6 +120,18 @@ module lc4_regfile_ss #(parameter n = 16)
 
     // assign o_rt_data_B =    ((i_rt_B == i_rd_B) & i_rd_we_B) ? i_wdata_B :
     //                         ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
+
+    assign o_rs_data_A =    ((i_rs_A == i_rd_A)) ? i_wdata_A : 
+                            ((i_rs_A == i_rd_B)) ? i_wdata_B : o_rs_A;
+
+    assign o_rt_data_A =    ((i_rt_A == i_rd_A)) ? i_wdata_A : 
+                            ((i_rt_A == i_rd_B)) ? i_wdata_B : o_rt_A;
+
+    assign o_rs_data_B =    ((i_rs_B == i_rd_B)) ? i_wdata_B : 
+                            ((i_rs_B == i_rd_A)) ? i_wdata_A : o_rs_B;
+
+    assign o_rt_data_B =    ((i_rt_B == i_rd_B)) ? i_wdata_B :
+                            ((i_rt_B == i_rd_A)) ? i_wdata_A : o_rt_B;
 
 endmodule
 
