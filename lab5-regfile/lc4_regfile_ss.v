@@ -69,14 +69,14 @@ module lc4_regfile_ss #(parameter n = 16)
     assign i_rd_we_A = (i_rd_A == i_rd_B) ? 1'b0 : 1'b1;            
 
     // Choose which pipe to write
-    assign i_wdata_r0 = (i_rd_A == 3'd0 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r1 = (i_rd_A == 3'd1 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r2 = (i_rd_A == 3'd2 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r3 = (i_rd_A == 3'd3 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r4 = (i_rd_A == 3'd4 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r5 = (i_rd_A == 3'd5 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r6 = (i_rd_A == 3'd6 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_wdata_r7 = (i_rd_A == 3'd7 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r0 = (i_rd_A == 3'd0 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r1 = (i_rd_A == 3'd1 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r2 = (i_rd_A == 3'd2 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r3 = (i_rd_A == 3'd3 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r4 = (i_rd_A == 3'd4 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r5 = (i_rd_A == 3'd5 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r6 = (i_rd_A == 3'd6 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r7 = (i_rd_A == 3'd7 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
 
     // Write enable setting
     assign we0 = ( ((i_rd_A == 3'd0) & i_rd_we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
@@ -89,14 +89,14 @@ module lc4_regfile_ss #(parameter n = 16)
     assign we7 = ( ((i_rd_A == 3'd7) & i_rd_we_A) || ((i_rd_B == 3'd7) & i_rd_we_B) ) ? 1'b1 : 1'b0;
 
     
-    Nbit_reg #(n) r0 (.in(i_wdata_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r1 (.in(i_wdata_r1), .out(rv1), .clk(clk), .we(we1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r2 (.in(i_wdata_r2), .out(rv2), .clk(clk), .we(we2), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r3 (.in(i_wdata_r3), .out(rv3), .clk(clk), .we(we3), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r4 (.in(i_wdata_r4), .out(rv4), .clk(clk), .we(we4), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r5 (.in(i_wdata_r5), .out(rv5), .clk(clk), .we(we5), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r6 (.in(i_wdata_r6), .out(rv6), .clk(clk), .we(we6), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r7 (.in(i_wdata_r7), .out(rv7), .clk(clk), .we(we7), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r0 (.in(i_data_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r1 (.in(i_data_r1), .out(rv1), .clk(clk), .we(we1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r2 (.in(i_data_r2), .out(rv2), .clk(clk), .we(we2), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r3 (.in(i_data_r3), .out(rv3), .clk(clk), .we(we3), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r4 (.in(i_data_r4), .out(rv4), .clk(clk), .we(we4), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r5 (.in(i_data_r5), .out(rv5), .clk(clk), .we(we5), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r6 (.in(i_data_r6), .out(rv6), .clk(clk), .we(we6), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n) r7 (.in(i_data_r7), .out(rv7), .clk(clk), .we(we7), .gwe(gwe), .rst(rst));
 
     Mux8to1 mux_rs_A(.sel(i_rs_A), .rv0(rv0), .rv1(rv1), .rv2(rv2), .rv3(rv3), 
     .rv4(rv4), .rv5(rv5), .rv6(rv6), .rv7(rv7), .o_data(o_rs_A));
