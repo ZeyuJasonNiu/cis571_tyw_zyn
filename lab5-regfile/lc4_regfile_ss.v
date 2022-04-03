@@ -67,8 +67,8 @@ module lc4_regfile_ss #(parameter n = 16)
     wire        we_A;
 
     //Only write pipe_B for if PipeA and PipeB has same Rd values
-    assign we_A = i_rd_we_A;
-    //we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;            
+    assign we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;;
+    //            
 
     // Choose which pipe to write
     assign i_data_r0 = (i_rd_A == 3'd0 & we_A) ? i_wdata_A : (i_rd_B == 3'd0 & i_rd_we_B) ? i_wdata_B : 16'b0; 
@@ -91,14 +91,14 @@ module lc4_regfile_ss #(parameter n = 16)
     assign we7 = ( ((i_rd_A == 3'd7) & we_A) || ((i_rd_B == 3'd7) & i_rd_we_B) ) ? 1'b1 : 1'b0;
 
     // Registers to hold values
-    Nbit_reg #(n) r0 (.in(i_data_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r1 (.in(i_data_r1), .out(rv1), .clk(clk), .we(we1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r2 (.in(i_data_r2), .out(rv2), .clk(clk), .we(we2), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r3 (.in(i_data_r3), .out(rv3), .clk(clk), .we(we3), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r4 (.in(i_data_r4), .out(rv4), .clk(clk), .we(we4), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r5 (.in(i_data_r5), .out(rv5), .clk(clk), .we(we5), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r6 (.in(i_data_r6), .out(rv6), .clk(clk), .we(we6), .gwe(gwe), .rst(rst));
-    Nbit_reg #(n) r7 (.in(i_data_r7), .out(rv7), .clk(clk), .we(we7), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r0 (.in(i_data_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r1 (.in(i_data_r1), .out(rv1), .clk(clk), .we(we1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r2 (.in(i_data_r2), .out(rv2), .clk(clk), .we(we2), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r3 (.in(i_data_r3), .out(rv3), .clk(clk), .we(we3), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r4 (.in(i_data_r4), .out(rv4), .clk(clk), .we(we4), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r5 (.in(i_data_r5), .out(rv5), .clk(clk), .we(we5), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r6 (.in(i_data_r6), .out(rv6), .clk(clk), .we(we6), .gwe(gwe), .rst(rst));
+    Nbit_reg #(n,16'b0) r7 (.in(i_data_r7), .out(rv7), .clk(clk), .we(we7), .gwe(gwe), .rst(rst));
 
     // MUX for output value selection
     Mux8to1 mux_rs_A(.sel(i_rs_A), .rv0(rv0), .rv1(rv1), .rv2(rv2), .rv3(rv3), 
