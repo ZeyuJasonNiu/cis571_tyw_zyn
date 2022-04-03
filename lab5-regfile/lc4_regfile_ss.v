@@ -71,14 +71,14 @@ module lc4_regfile_ss #(parameter n = 16)
     //            
 
     // Choose which pipe to write
-    assign i_data_r0 = (i_rd_A == 3'd0 & we_A) ? i_wdata_A : (i_rd_B == 3'd0 & i_rd_we_B) ? i_wdata_B : 16'b0; 
-    assign i_data_r1 = (i_rd_A == 3'd1 & we_A) ? i_wdata_A : (i_rd_B == 3'd1 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r2 = (i_rd_A == 3'd2 & we_A) ? i_wdata_A : (i_rd_B == 3'd2 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r3 = (i_rd_A == 3'd3 & we_A) ? i_wdata_A : (i_rd_B == 3'd3 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r4 = (i_rd_A == 3'd4 & we_A) ? i_wdata_A : (i_rd_B == 3'd4 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r5 = (i_rd_A == 3'd5 & we_A) ? i_wdata_A : (i_rd_B == 3'd5 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r6 = (i_rd_A == 3'd6 & we_A) ? i_wdata_A : (i_rd_B == 3'd6 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r7 = (i_rd_A == 3'd7 & we_A) ? i_wdata_A : (i_rd_B == 3'd7 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r0 = (i_rd_A == 3'd0 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd0 & i_rd_we_B) ? i_wdata_B : 16'b0; 
+    assign i_data_r1 = (i_rd_A == 3'd1 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd1 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r2 = (i_rd_A == 3'd2 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd2 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r3 = (i_rd_A == 3'd3 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd3 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r4 = (i_rd_A == 3'd4 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd4 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r5 = (i_rd_A == 3'd5 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd5 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r6 = (i_rd_A == 3'd6 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd6 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r7 = (i_rd_A == 3'd7 & i_rd_we_A) ? i_wdata_A : (i_rd_B == 3'd7 & i_rd_we_B) ? i_wdata_B : 16'b0;
 
     // Write enable setting
     assign we0 = ( ((i_rd_A == 3'd0) & we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
