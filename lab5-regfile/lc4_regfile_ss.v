@@ -65,6 +65,7 @@ module lc4_regfile_ss #(parameter n = 16)
     wire [16:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
     wire        we0, we1, we2, we3, we4, we5, we6, we7;
     wire        we_A;
+
     //Only write pipe_B for if PipeA and PipeB has same Rd values
     assign we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;            
 
@@ -109,8 +110,8 @@ module lc4_regfile_ss #(parameter n = 16)
 
     //Bypass write-in value to output
     assign o_rs_data_A = ((i_rs_A == i_rd_A) & we_A) ? i_wdata_A : o_rs_A;
-    assign o_rs_data_B = ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rs_B;
     assign o_rt_data_A = ((i_rt_A == i_rd_A) & we_A) ? i_wdata_A : o_rt_A;
+    assign o_rs_data_B = ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rs_B;
     assign o_rt_data_B = ((i_rt_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_B;
 
 endmodule
