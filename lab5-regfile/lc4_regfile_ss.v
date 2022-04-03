@@ -112,15 +112,15 @@ module lc4_regfile_ss #(parameter n = 16)
 
     //Bypass write-in value to output
     assign o_rs_data_A =    ((i_rs_A == i_rd_A) & we_A) ? i_wdata_A : 
-                            ((i_rs_A == i_rd_B) & i_rd_we_B)? i_wdata_B : o_rs_A;
+                            ((i_rs_A == i_rd_B) & (i_rd_we_B || ~we_A))? i_wdata_B : o_rs_A;
 
     assign o_rt_data_A =    ((i_rt_A == i_rd_A) & we_A) ? i_wdata_A : 
-                            ((i_rt_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_A;
+                            ((i_rt_A == i_rd_B) & (i_rd_we_B || ~we_A)) ? i_wdata_B : o_rt_A;
 
     assign o_rs_data_B =    ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : 
                             ((i_rs_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rs_B;
 
-    assign o_rt_data_B =    (((i_rt_B == i_rd_B) & i_rd_we_B)) ? i_wdata_B :
+    assign o_rt_data_B =    ((i_rt_B == i_rd_B) & i_rd_we_B) ? i_wdata_B :
                             ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
 
 endmodule
