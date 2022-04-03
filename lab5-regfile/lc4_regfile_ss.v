@@ -62,9 +62,9 @@ module lc4_regfile_ss #(parameter n = 16)
     wire [31:0] i_data;
     wire [16:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
                 i_data_r4, i_data_r5, i_data_r6, i_data_r7;
-    wire        we0, we1, we2, we3, we4, we5, we6, we7;
     wire [16:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
-
+    wire        we0, we1, we2, we3, we4, we5, we6, we7;
+    wire        we_A;
     //Only write pipe_B for if PipeA and PipeB has same Rd values
     assign we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;            
 
