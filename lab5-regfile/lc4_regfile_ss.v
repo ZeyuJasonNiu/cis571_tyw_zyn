@@ -117,7 +117,8 @@ module lc4_regfile_ss #(parameter n = 16)
                             ((i_rt_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_A;
 
     assign o_rs_data_B =    ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : 
-                            ((i_rs_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rs_B;
+                            (((i_rs_B == i_rd_A) & i_rd_we_A) || ((i_rs_B == i_rd_A) & (we_A == 0))) ? i_wdata_A :
+                            o_rs_B;
 
     assign o_rt_data_B =    (((i_rt_B == i_rd_B) & i_rd_we_B)) ? i_wdata_B :
                             ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
