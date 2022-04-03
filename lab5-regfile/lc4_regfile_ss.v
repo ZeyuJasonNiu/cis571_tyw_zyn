@@ -62,7 +62,7 @@ module lc4_regfile_ss #(parameter n = 16)
     wire [31:0] i_data;
     wire [16:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
                 i_data_r4, i_data_r5, i_data_r6, i_data_r7;
-    wire [16:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
+    wire [15:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
     wire        we0, we1, we2, we3, we4, we5, we6, we7;
     wire        we_A;
 
@@ -109,17 +109,17 @@ module lc4_regfile_ss #(parameter n = 16)
     .rv4(rv4), .rv5(rv5), .rv6(rv6), .rv7(rv7), .o_data(o_rt_B));  
 
     //Bypass write-in value to output
-    assign o_rs_data_A =    ((i_rs_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
+    assign o_rs_data_A =    ((i_rs_A == i_rd_A) & (we_A == i_rd_we_A)) ? i_wdata_A : 
                             ((i_rs_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rs_A;
 
-    assign o_rt_data_A =    ((i_rt_A == i_rd_A) & i_rd_we_A) ? i_wdata_A : 
+    assign o_rt_data_A =    ((i_rt_A == i_rd_A) & (we_A == i_rd_we_A)) ? i_wdata_A : 
                             ((i_rt_A == i_rd_B) & i_rd_we_B) ? i_wdata_B : o_rt_A;
 
     assign o_rs_data_B =    ((i_rs_B == i_rd_B) & i_rd_we_B) ? i_wdata_B : 
-                            ((i_rs_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rs_B;
+                            ((i_rs_B == i_rd_A) & (we_A == i_rd_we_A)) ? i_wdata_A : o_rs_B;
 
-    assign o_rt_data_B =    ((i_rt_B == i_rd_B) & i_rd_we_B) ? i_wdata_B :
-                            ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
+    assign o_rt_data_B =    (((i_rt_B == i_rd_B) & i_rd_we_B) || ) ? i_wdata_B :
+                            ((i_rt_B == i_rd_A) & (we_A == i_rd_we_A)) ? i_wdata_A : o_rt_B;
 
 endmodule
 
