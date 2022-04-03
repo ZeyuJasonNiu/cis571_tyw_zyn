@@ -66,27 +66,27 @@ module lc4_regfile_ss #(parameter n = 16)
     wire [16:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
 
     //Only write pipe_B for if PipeA and PipeB has same Rd values
-    assign i_rd_we_A = (i_rd_A == i_rd_B) ? 1'b0 : 1'b1;            
+    assign we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;            
 
     // Choose which pipe to write
-    assign i_data_r0 = (i_rd_A == 3'd0 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r1 = (i_rd_A == 3'd1 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r2 = (i_rd_A == 3'd2 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r3 = (i_rd_A == 3'd3 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r4 = (i_rd_A == 3'd4 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r5 = (i_rd_A == 3'd5 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r6 = (i_rd_A == 3'd6 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
-    assign i_data_r7 = (i_rd_A == 3'd7 & i_rd_we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r0 = (i_rd_A == 3'd0 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r1 = (i_rd_A == 3'd1 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r2 = (i_rd_A == 3'd2 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r3 = (i_rd_A == 3'd3 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r4 = (i_rd_A == 3'd4 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r5 = (i_rd_A == 3'd5 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r6 = (i_rd_A == 3'd6 & we_A) ? i_wdata_A : i_wdata_B;
+    assign i_data_r7 = (i_rd_A == 3'd7 & we_A) ? i_wdata_A : i_wdata_B;
 
     // Write enable setting
-    assign we0 = ( ((i_rd_A == 3'd0) & i_rd_we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we1 = ( ((i_rd_A == 3'd1) & i_rd_we_A) || ((i_rd_B == 3'd1) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we2 = ( ((i_rd_A == 3'd2) & i_rd_we_A) || ((i_rd_B == 3'd2) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we3 = ( ((i_rd_A == 3'd3) & i_rd_we_A) || ((i_rd_B == 3'd3) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we4 = ( ((i_rd_A == 3'd4) & i_rd_we_A) || ((i_rd_B == 3'd4) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we5 = ( ((i_rd_A == 3'd5) & i_rd_we_A) || ((i_rd_B == 3'd5) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we6 = ( ((i_rd_A == 3'd6) & i_rd_we_A) || ((i_rd_B == 3'd6) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we7 = ( ((i_rd_A == 3'd7) & i_rd_we_A) || ((i_rd_B == 3'd7) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we0 = ( ((i_rd_A == 3'd0) & we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we1 = ( ((i_rd_A == 3'd1) & we_A) || ((i_rd_B == 3'd1) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we2 = ( ((i_rd_A == 3'd2) & we_A) || ((i_rd_B == 3'd2) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we3 = ( ((i_rd_A == 3'd3) & we_A) || ((i_rd_B == 3'd3) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we4 = ( ((i_rd_A == 3'd4) & we_A) || ((i_rd_B == 3'd4) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we5 = ( ((i_rd_A == 3'd5) & we_A) || ((i_rd_B == 3'd5) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we6 = ( ((i_rd_A == 3'd6) & we_A) || ((i_rd_B == 3'd6) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we7 = ( ((i_rd_A == 3'd7) & we_A) || ((i_rd_B == 3'd7) & i_rd_we_B) ) ? 1'b1 : 1'b0;
 
     
     Nbit_reg #(n) r0 (.in(i_data_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
