@@ -171,12 +171,11 @@ module lc4_processor(input wire         clk,             // main clock
     assign  m_O_i_B = (x2m_bus_B[16] == 1) ? d2x_pc_B : o_alu_result_B; 
 
     assign  write_back_A = (w_o_bus_A[19] == 1) ? w_D_o : w_O_o;
-    assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o : w_O_o                 // Write back to register
+    assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o : w_O_o;                 // Write back to register
 
 
     // Registers for stall cycle //
-    wire[1:0]   d_stall_i, d_stall_o, x_stall_i, 
-                x_stall_o, m_stall_o;
+    wire[1:0]   d_stall_i, d_stall_o, x_stall_i, x_stall_o, m_stall_o;
 
     Nbit_reg #(2, 2'b10) d_stall_reg (.in(d_stall_i), .out(d_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2, 2'b10) x_stall_reg (.in(x_stall_i), .out(x_stall_o), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
