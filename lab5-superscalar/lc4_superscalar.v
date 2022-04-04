@@ -76,7 +76,7 @@ module lc4_processor(input wire         clk,             // main clock
             .i_rd_we_A(w_o_bus_A[22]),
             .i_rd_we_B(w_o_bus_B[22]),
             .i_wdata_A(write_back_A),
-            .i_wdata_B(write_back_B),
+            .i_wdata_B(write_back_B)
     );
     
     // lc4_regfile Pipeline_Regfile (
@@ -108,7 +108,7 @@ module lc4_processor(input wire         clk,             // main clock
     // Instructions registers //
     wire            x_br_taken_or_ctrl_A, branch_taken_A,
                     x_br_taken_or_ctrl_B, branch_taken_B;                              // Taking branch or control instruction will flush the current cycle
-    wire            load2use_A, load2use_A;                                             // Judge whether there is a load-to-use stall
+    wire            load2use_A, load2use_B;                                             // Judge whether there is a load-to-use stall
     wire [15:0]     d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;                 // PC bus at D and pre_X stage
     wire [33:0]     d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A,
                     d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;        // Intermediate buses 
