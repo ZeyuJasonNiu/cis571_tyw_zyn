@@ -95,7 +95,7 @@ module lc4_processor(input wire         clk,             // main clock
     /**** Registers for Intermediate States ****/
 
     // Intermediate PC registers //
-    wire [15:0]     next_pc_A, next_pc_;
+    wire [15:0]     next_pc_A, next_pc;
     wire [15:0]     f2d_pc, d2x_pc, x2m_pc, m2w_pc, w_o_pc; 
 
     Nbit_reg #(16, 16'h8200) f_pc_reg (.in(next_pc), .out(f2d_pc), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
