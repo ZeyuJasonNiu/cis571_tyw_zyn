@@ -54,15 +54,15 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_PC_Inc(.a(f2d_pc), .b(16'd2), .cin(1'b0), .sum(f2d_pc_plus_one));
 
     // Register file for Pipelned Datapath //
-    wire [15:0] o_regfile_rs_A, o_regfile_rt_A,
-                o_regfile_rs_B, o_regfile_rt_B;              
+    wire [15:0] o_regfile_rs_A, o_regfile_rt_A, o_regfile_rs_B, o_regfile_rt_B; 
+
     lc4_regfile_ss Superscaler_Regfile (
             .clk(clk),
             .gwe(gwe),
             .rst(rst),
 
             .i_rs_A(d2x_bus_A[33:31]),
-            .i_rs_B(d2x_bus_B[33:31]) 
+            .i_rs_B(d2x_bus_B[33:31]), 
             .o_rs_data_A(o_regfile_rs_A),
             .o_rs_data_B(o_regfile_rs_B),
 
@@ -107,7 +107,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     // Instructions registers //
     wire            x_br_taken_or_ctrl_A, branch_taken_A,
-                    x_br_taken_or_ctrl_B, branch_taken_B,;                              // Taking branch or control instruction will flush the current cycle
+                    x_br_taken_or_ctrl_B, branch_taken_B;                              // Taking branch or control instruction will flush the current cycle
     wire            load2use_A, load2use_A;                                             // Judge whether there is a load-to-use stall
     wire [15:0]     d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;                 // PC bus at D and pre_X stage
     wire [33:0]     d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A,
