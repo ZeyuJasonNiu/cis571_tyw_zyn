@@ -80,14 +80,14 @@ module lc4_regfile_ss #(parameter n = 16)
     assign i_data_r7 = (i_rd_A == 3'd7 & we_A) ? i_wdata_A : (i_rd_B == 3'd7 & i_rd_we_B) ? i_wdata_B : 16'b0;
 
     // Write enable setting
-    assign we0 = ( ((i_rd_A == 3'd0) & we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we1 = ( ((i_rd_A == 3'd1) & we_A) || ((i_rd_B == 3'd1) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we2 = ( ((i_rd_A == 3'd2) & we_A) || ((i_rd_B == 3'd2) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we3 = ( ((i_rd_A == 3'd3) & we_A) || ((i_rd_B == 3'd3) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we4 = ( ((i_rd_A == 3'd4) & we_A) || ((i_rd_B == 3'd4) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we5 = ( ((i_rd_A == 3'd5) & we_A) || ((i_rd_B == 3'd5) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we6 = ( ((i_rd_A == 3'd6) & we_A) || ((i_rd_B == 3'd6) & i_rd_we_B) ) ? 1'b1 : 1'b0;
-    assign we7 = ( ((i_rd_A == 3'd7) & we_A) || ((i_rd_B == 3'd7) & i_rd_we_B) ) ? 1'b1 : 1'b0;
+    assign we0 = ( ((i_rd_A == 3'd0) & we_A) || (i_rd_B == 3'd0) ? 1'b1 : 1'b0;
+    assign we1 = ( ((i_rd_A == 3'd1) & we_A) || (i_rd_B == 3'd1) ? 1'b1 : 1'b0;
+    assign we2 = ( ((i_rd_A == 3'd2) & we_A) || (i_rd_B == 3'd2) ? 1'b1 : 1'b0;
+    assign we3 = ( ((i_rd_A == 3'd3) & we_A) || (i_rd_B == 3'd3) ? 1'b1 : 1'b0;
+    assign we4 = ( ((i_rd_A == 3'd4) & we_A) || (i_rd_B == 3'd4) ? 1'b1 : 1'b0;
+    assign we5 = ( ((i_rd_A == 3'd5) & we_A) || (i_rd_B == 3'd5) ? 1'b1 : 1'b0;
+    assign we6 = ( ((i_rd_A == 3'd6) & we_A) || (i_rd_B == 3'd6) ? 1'b1 : 1'b0;
+    assign we7 = ( ((i_rd_A == 3'd7) & we_A) || (i_rd_B == 3'd7) ? 1'b1 : 1'b0;
 
     // Registers to hold values
     Nbit_reg #(n,16'b0) r0 (.in(i_data_r0), .out(rv0), .clk(clk), .we(we0), .gwe(gwe), .rst(rst));
