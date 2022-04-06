@@ -60,7 +60,7 @@ module lc4_regfile_ss #(parameter n = 16)
 
     wire [15:0] rv0, rv1, rv2, rv3, rv4, rv5, rv6, rv7;
     wire [31:0] i_data;
-    wire [16:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
+    wire [15:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
                 i_data_r4, i_data_r5, i_data_r6, i_data_r7;
     wire [15:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
     wire        we0, we1, we2, we3, we4, we5, we6, we7;
