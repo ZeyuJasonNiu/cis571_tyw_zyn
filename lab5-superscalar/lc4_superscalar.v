@@ -50,10 +50,29 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // PC fetch and plus one before D stage //
-    wire    [15:0] f2d_pc_plus_one;
-    cla16 Pipeline_PC_Inc(.a(f2d_pc), .b(16'd2), .cin(1'b0), .sum(f2d_pc_plus_one));
+    wire    [15:0] f2d_pc_plus_one, f2d_pc_plus_two;
+    cla16 Superscaler_PC_Inc_one(.a(f2d_pc), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one));
+    cla16 Superscaler_PC_Inc_two(.a(f2d_pc), .b(16'd2), .cin(1'b0), .sum(f2d_pc_plus_two));
 
-    // Register file for Pipelned Datapath //
+    // Intermediate PC registers //
+    wire [15:0]     next_pc;
+    wire [15:0]     f2d_pc, f2d_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A
+                    f2d_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B; 
+
+    Nbit_reg #(16, 16'h8200) f_pc_reg (.in(next_pc_A), .out(f2d_pc), .clk(clk), .we(~load2use_A), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(f2d_pc_A), .out(d2x_pc_A), .clk(clk), .we(~load2use_A), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    x_pc_reg_A (.in(d2x_pc_A), .out(x2m_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    m_pc_reg_A (.in(x2m_pc_A), .out(m2w_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    w_pc_reg_A (.in(m2w_pc_A), .out(w_o_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    Nbit_reg #(16, 16'b0)    d_pc_reg_B (.in(f2d_pc_B), .out(d2x_pc_B), .clk(clk), .we(~load2use_A), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    x_pc_reg_B (.in(d2x_pc_B), .out(x2m_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    m_pc_reg_B (.in(x2m_pc_B), .out(m2w_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    w_pc_reg_B (.in(m2w_pc_B), .out(w_o_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+
+
+    // Register file for Superscaler Datapath //
     wire [15:0] o_regfile_rs_A, o_regfile_rt_A, o_regfile_rs_B, o_regfile_rt_B; 
 
     lc4_regfile_ss Superscaler_Regfile (
@@ -94,17 +113,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     /**** Registers for Intermediate States ****/
 
-    // Intermediate PC registers //
-    wire [15:0]     next_pc_A, next_pc;
-    wire [15:0]     f2d_pc, d2x_pc, x2m_pc, m2w_pc, w_o_pc; 
-
-    Nbit_reg #(16, 16'h8200) f_pc_reg (.in(next_pc), .out(f2d_pc), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)    d_pc_reg (.in(f2d_pc), .out(d2x_pc), .clk(clk), .we(~load2use), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)    x_pc_reg (.in(d2x_pc), .out(x2m_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)    m_pc_reg (.in(x2m_pc), .out(m2w_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)    w_pc_reg (.in(m2w_pc), .out(w_o_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-
-
+    
     // Instructions registers //
     wire            x_br_taken_or_ctrl_A, branch_taken_A,
                     x_br_taken_or_ctrl_B, branch_taken_B;                              // Taking branch or control instruction will flush the current cycle
@@ -312,12 +321,18 @@ module lc4_processor(input wire         clk,             // main clock
     assign o_dmem_we =          m2w_bus[18];
     assign o_dmem_towrite =     wm_bypass_res;
 
-    assign test_cur_pc =        w_o_pc;
-    assign test_cur_insn =      w_o_bus[15:0];
-    assign test_regfile_we =    w_o_bus[22];
-    assign test_regfile_wsel =  w_o_bus[27:25];
-    assign test_regfile_data =  write_back;
-    assign test_nzp_we =        w_o_bus[21];
+    assign test_cur_pc_A =        w_o_pc_A;
+    assign test_cur_pc_B =        w_o_pc_B;
+    assign test_cur_insn_A =      w_o_bus_A[15:0];
+    assign test_cur_insn_B =      w_o_bus_B[15:0];
+    assign test_regfile_we_A =    w_o_bus_A[22];
+    assign test_regfile_we_B =    w_o_bus_B[22];
+    assign test_regfile_wsel_A =  w_o_bus_A[27:25];
+    assign test_regfile_wsel_B =  w_o_bus_B[27:25];
+    assign test_regfile_data_A =  write_back_A;
+    assign test_regfile_data_A =  write_back_B;
+    assign test_nzp_we_A =        w_o_bu_A[21];
+    assign test_nzp_we_B =        w_o_bu_B[21];
     //**** Test Wire Assignment END ****//
 
 
