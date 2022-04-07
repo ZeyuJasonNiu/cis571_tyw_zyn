@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 // Prevent implicit wire declaration
-`default_nettype none
+//`default_nettype none
 
 /* 8-register, n-bit register file with
  * four read ports and two write ports
@@ -60,25 +60,24 @@ module lc4_regfile_ss #(parameter n = 16)
 
     wire [15:0] rv0, rv1, rv2, rv3, rv4, rv5, rv6, rv7;
     wire [31:0] i_data;
-    wire [16:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
+    wire [15:0] i_data_r0, i_data_r1, i_data_r2, i_data_r3,
                 i_data_r4, i_data_r5, i_data_r6, i_data_r7;
     wire [15:0] o_rs_A, o_rs_B, o_rt_A, o_rt_B;
     wire        we0, we1, we2, we3, we4, we5, we6, we7;
     wire        we_A;
 
     //Only write pipe_B for if PipeA and PipeB has same Rd values
-    assign we_A = (i_rd_A == i_rd_B) ? 1'b0 : i_rd_we_A;
-    //            
+    assign we_A = ((i_rd_A == i_rd_B) & i_rd_we_B) ? 1'b0 : i_rd_we_A;        
 
     // Choose which pipe to write
-    assign i_data_r0 = (i_rd_A == 3'd0 & we_A) ? i_wdata_A : (i_rd_B == 3'd0 & i_rd_we_B) ? i_wdata_B : 16'b0; 
-    assign i_data_r1 = (i_rd_A == 3'd1 & we_A) ? i_wdata_A : (i_rd_B == 3'd1 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r2 = (i_rd_A == 3'd2 & we_A) ? i_wdata_A : (i_rd_B == 3'd2 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r3 = (i_rd_A == 3'd3 & we_A) ? i_wdata_A : (i_rd_B == 3'd3 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r4 = (i_rd_A == 3'd4 & we_A) ? i_wdata_A : (i_rd_B == 3'd4 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r5 = (i_rd_A == 3'd5 & we_A) ? i_wdata_A : (i_rd_B == 3'd5 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r6 = (i_rd_A == 3'd6 & we_A) ? i_wdata_A : (i_rd_B == 3'd6 & i_rd_we_B) ? i_wdata_B : 16'b0;
-    assign i_data_r7 = (i_rd_A == 3'd7 & we_A) ? i_wdata_A : (i_rd_B == 3'd7 & i_rd_we_B) ? i_wdata_B : 16'b0;
+    assign i_data_r0 = (i_rd_A == 3'd0 & we_A) ? i_wdata_A : (i_rd_B == 3'd0) ? i_wdata_B : 16'b0; 
+    assign i_data_r1 = (i_rd_A == 3'd1 & we_A) ? i_wdata_A : (i_rd_B == 3'd1) ? i_wdata_B : 16'b0;
+    assign i_data_r2 = (i_rd_A == 3'd2 & we_A) ? i_wdata_A : (i_rd_B == 3'd2) ? i_wdata_B : 16'b0;
+    assign i_data_r3 = (i_rd_A == 3'd3 & we_A) ? i_wdata_A : (i_rd_B == 3'd3) ? i_wdata_B : 16'b0;
+    assign i_data_r4 = (i_rd_A == 3'd4 & we_A) ? i_wdata_A : (i_rd_B == 3'd4) ? i_wdata_B : 16'b0;
+    assign i_data_r5 = (i_rd_A == 3'd5 & we_A) ? i_wdata_A : (i_rd_B == 3'd5) ? i_wdata_B : 16'b0;
+    assign i_data_r6 = (i_rd_A == 3'd6 & we_A) ? i_wdata_A : (i_rd_B == 3'd6) ? i_wdata_B : 16'b0;
+    assign i_data_r7 = (i_rd_A == 3'd7 & we_A) ? i_wdata_A : (i_rd_B == 3'd7) ? i_wdata_B : 16'b0;
 
     // Write enable setting
     assign we0 = ( ((i_rd_A == 3'd0) & we_A) || ((i_rd_B == 3'd0) & i_rd_we_B) ) ? 1'b1 : 1'b0;
@@ -124,3 +123,5 @@ module lc4_regfile_ss #(parameter n = 16)
                             ((i_rt_B == i_rd_A) & i_rd_we_A) ? i_wdata_A : o_rt_B;
 
 endmodule
+
+

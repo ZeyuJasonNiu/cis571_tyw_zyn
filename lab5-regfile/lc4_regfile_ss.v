@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 // Prevent implicit wire declaration
-`default_nettype none
+//`default_nettype none
 
 /* 8-register, n-bit register file with
  * four read ports and two write ports
