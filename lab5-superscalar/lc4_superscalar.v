@@ -65,9 +65,9 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) w_insn_reg_A (.in(m2w_bus_A), .out(w_o_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     Nbit_reg #(16, 16'b0) d_insn_reg_B (.in(d_i_bus_B), .out(d2x_bus_tmp_B), .clk(clk), .we(~LTU_B), .gwe(gwe), .rst(rst));
-    Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_final_B), .out(x2m_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(34, 34'b0) w_insn_reg_A (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(34, 34'b0) x_insn_reg_B (.in(d2x_bus_final_B), .out(x2m_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign d_i_bus_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                        (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
@@ -180,7 +180,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'b0) x_B_reg_A (.in(x_B_i_A), .out(x_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) m_B_reg_A (.in(rt_bypass_res_A), .out(m_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) m_O_reg_A (.in(m_O_i_A), .out(m_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) w_O_reg_A (.in(m_O_o_A), .out(w_O_o)_A, .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) w_O_reg_A (.in(m_O_o_A), .out(w_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0) w_D_reg_A (.in(i_cur_dmem_data_A), .out(w_D_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     Nbit_reg #(16, 16'b0) x_A_reg_B (.in(x_A_i_B), .out(x_A_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -255,13 +255,13 @@ module lc4_processor(input wire         clk,             // main clock
         .o_rs_data_B(o_regfile_rs_B),
         .o_rt_data_B(o_regfile_rt_B),
 
-        i_rd_A(w_o_bus_A[27:25]),
-        i_wdata_A(write_back_A),
-        i_rd_we_A(w_o_bus_A[22]),
+        .i_rd_A(w_o_bus_A[27:25]),
+        .i_wdata_A(write_back_A),
+        .i_rd_we_A(w_o_bus_A[22]),
 
-        i_rd_B(w_o_bus_B[27:25]),
-        i_wdata_B(write_back_B),
-        i_rd_we_B(w_o_bus_B[22])
+        .i_rd_B(w_o_bus_B[27:25]),
+        .i_wdata_B(write_back_B),
+        .i_rd_we_B(w_o_bus_B[22])
     );
 
     lc4_alu ALU_Pipe_A( 
@@ -364,7 +364,7 @@ module lc4_processor(input wire         clk,             // main clock
     // *** Bypass logics BEGIN ***//
     // MX, WX bypass
     wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
-         rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rs_WA_XA_bypass,
+         rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
          rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
          rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
 
