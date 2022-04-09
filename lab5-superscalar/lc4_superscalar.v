@@ -394,7 +394,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // *** Bypass logics BEGIN ***//
-    // MX, WX bypass //
+    // MX, WX bypass //  
     wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
          rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
          rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
@@ -489,7 +489,7 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-      // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
+       $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 
