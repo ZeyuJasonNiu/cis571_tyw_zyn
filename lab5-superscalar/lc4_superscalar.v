@@ -489,7 +489,7 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       $display("%d %h %h %h %h %h", $time, f2d_pc_A, f2d_pc_plus_one, f2d_pc_plus_two_A, test_cur_pc_A, test_cur_pc_B);
+       $display("%d %h %h %h %h %h", $time, f2d_pc_A, f2d_pc_plus_one_A, f2d_pc_plus_two_A, test_cur_pc_A, test_cur_pc_B);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
 
