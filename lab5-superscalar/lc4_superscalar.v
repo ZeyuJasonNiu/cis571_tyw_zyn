@@ -131,7 +131,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_A =    (LTU_A == 1) ? 2'd3 : 
                             d_stall_o_A;
     assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
-                            (B_need_A || mem_hazard) ? 2'd1 :
+                            ((B_need_A || mem_hazard) && (~LTU_between_DA_DB)) ? 2'd1 :
                             (LTU_B == 1) ? 2'd3 :
                             d_stall_o_B;
     // assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
