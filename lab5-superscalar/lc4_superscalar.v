@@ -50,12 +50,14 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
 
-   /***  YOUR CODE HERE ***/
+    /***  YOUR CODE HERE ***/
+    assign led_data = switch_data;
+
    // Instruction Registers
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
-    wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA;
+    wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_DA_DB, LTU_between_XA_DB, LTU_between_XB_DA;
     wire mem_hazard, B_need_A;
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
 
@@ -445,7 +447,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_wsel_A = w_o_bus_A[27:25];
     assign test_regfile_wsel_B = w_o_bus_B[27:25];
     assign test_regfile_data_A =  write_back_A;
-    assign test_regfile_data_A =  write_back_B;
+    assign test_regfile_data_B =  write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
 
