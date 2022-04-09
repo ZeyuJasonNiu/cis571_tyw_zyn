@@ -136,12 +136,15 @@
 
     //  Register for dmem parameter's
     wire [15:0] w_dmem_data;
-    Nbit_reg #(1, 1'b0)     w_dmem_we_reg (.in(o_dmem_we), .out(test_dmem_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)   w_dmem_addr_reg (.in(o_dmem_addr), .out(test_dmem_addr), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)   w_dmem_data_reg (.in(w_dmem_data), .out(test_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-
+    // Nbit_reg #(1, 1'b0)     w_dmem_we_reg (.in(o_dmem_we), .out(test_dmem_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(16, 16'b0)   w_dmem_addr_reg (.in(o_dmem_addr), .out(test_dmem_addr), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(16, 16'b0)   w_dmem_data_reg (.in(w_dmem_data), .out(test_dmem_data), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    assign test_dmem_we = o_dmem_we;
+    assign test_dmem_addr = o_dmem_addr;
     assign w_dmem_data =    (m2w_bus[19] == 1) ? i_cur_dmem_data :
-                            (m2w_bus[18] == 1) ? wm_bypass_res : 16'b0;   
+                            (m2w_bus[18] == 1) ? wm_bypass_res : 16'b0;
+    assign test_dmem_data = w_dmem_data;
+
     // NZP Register //
     Nbit_reg Pipeline_NZP_Reg (
         .in(i_regfile_wdata_sign), 

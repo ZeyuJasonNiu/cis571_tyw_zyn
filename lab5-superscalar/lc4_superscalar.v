@@ -440,7 +440,7 @@ module lc4_processor(input wire         clk,             // main clock
     // *** Bypass logics END ***//
 
     
-
+    // *** Test Wire Assignment *** //
     assign o_cur_pc = f2d_pc_A;
     assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
     assign test_cur_pc_A = w_o_pc_A;
