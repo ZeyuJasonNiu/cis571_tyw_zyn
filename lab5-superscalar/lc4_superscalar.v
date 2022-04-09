@@ -105,10 +105,10 @@ module lc4_processor(input wire         clk,             // main clock
                                ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) &&
                                (~LTU_within_B) && (~LTU_between_DA_DB);
     
-    assign LTU_A = LTU_within_A || LTU_between_XB_DA;
-    assign LTU_B = LTU_within_B || LTU_between_XA_DB;
-    assign mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);
-    assign B_need_A = (d2x_bus_A[27:25] == d2x_bus_B[33:31]) || (d2x_bus_A[27:25] == d2x_bus_B[30:28]);
+    assign LTU_A = LTU_within_A || LTU_between_XB_DA;                                                       //Case 1: LTU dependence in pipe A
+    assign LTU_B = LTU_within_B || LTU_between_XA_DB;                                                       //Case 2: LTU dependence in pipe B
+    assign B_need_A = (d2x_bus_A[27:25] == d2x_bus_B[33:31]) || (d2x_bus_A[27:25] == d2x_bus_B[30:28]) || LTU_between_DA_DB;    // Case3: DA <-> DB dependence
+    assign mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);               //Case 4: Structual hazard
 
 
 
@@ -137,7 +137,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
                             (LTU_B == 1) ? 2'd3 :
                             (B_need_A || mem_hazard) ? 2'd1 :
-                            d_stall_o_B;
+                            d_stall_o_B-;
 
     
 
