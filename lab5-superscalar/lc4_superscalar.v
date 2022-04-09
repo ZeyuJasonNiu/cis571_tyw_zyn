@@ -52,6 +52,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     /***  YOUR CODE HERE ***/
     assign led_data = switch_data;
+    
 
    // Instruction Registers
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
@@ -107,7 +108,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign B_need_A = (d2x_bus_A[27:25] == d2x_bus_B[33:31]) || (d2x_bus_A[27:25] == d2x_bus_B[30:28]);
 
 
-    // Stall Registers
+    // *** Stall Registers *** //
     wire [1:0] d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
     wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_o_B;
 
