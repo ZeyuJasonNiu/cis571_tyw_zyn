@@ -134,6 +134,7 @@ module lc4_processor(input wire         clk,             // main clock
     // PC Registers and Branch prediction //
     wire [15:0] next_pc_A, f2d_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
     wire [15:0] d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
+    wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
 
     Nbit_reg #(16, 16'h8200) f_pc_reg_A (.in(next_pc_A), .out(f2d_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(f2d_pc_A), .out(d2x_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
@@ -266,6 +267,8 @@ module lc4_processor(input wire         clk,             // main clock
         .i_rd_we_B(w_o_bus_B[22])
     );
 
+
+    wire [15:0] o_alu_result_A, o_alu_result_B;
     lc4_alu ALU_Pipe_A( 
         .i_insn(x2m_bus_A[15:0]),
         .i_pc(x2m_pc_A),
@@ -283,6 +286,8 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     //  Register for dmem parameter's //
+    wire[15:0]      i_cur_dmem_data_A, i_cur_dmem_data_B;
+
     assign test_dmem_we_A = m2w_bus_A[18];
     assign test_dmem_we_B = m2w_bus_B[18];
     assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
@@ -417,7 +422,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // WM and MM bypass
-    wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass;
+    wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
 
     assign WB_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22]);
     assign WA_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22]);
