@@ -80,6 +80,7 @@ module lc4_processor(input wire         clk,             // main clock
                        i_cur_insn_B;
 
 
+
    // *** LTU situations classifier *** //
     assign LTU_between_DA_DB = (d2x_bus_A[19]) && 
                                (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == d2x_bus_A[27:25])) || 
@@ -110,12 +111,13 @@ module lc4_processor(input wire         clk,             // main clock
     assign B_need_A = (d2x_bus_A[27:25] == d2x_bus_B[33:31]) || (d2x_bus_A[27:25] == d2x_bus_B[30:28]);
 
 
+
     // *** Stall Registers *** //
     wire [1:0] d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
     wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_o_B;
 
     Nbit_reg #(2, 2'b10) d_stall_reg_A (.in(d_stall_i_A), .out(d_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)); 
     Nbit_reg #(2, 2'b10) m_stall_reg_A (.in(x_stall_o_A), .out(m_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2, 2'b10) w_stall_reg_A (.in(m_stall_o_A), .out(test_stall_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
@@ -124,14 +126,18 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(2, 2'b10) m_stall_reg_B (.in(x_stall_o_B), .out(m_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2, 2'b10) w_stall_reg_B (.in(m_stall_o_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign d_stall_i_A =  (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
-    assign d_stall_i_B =  (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
-    assign x_stall_i_A =  (LTU_A == 1) ? 2'd3 : 
-                          d_stall_o_A;
-    assign x_stall_i_B = (LTU_A == 1) ? 2'd1 :
-                         (B_need_A || mem_hazard) ? 2'd1 :
-                         (LTU_B == 1) ? 2'd3 :
-                         d_stall_o_B;
+    assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
+    assign d_stall_i_B =    (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+    assign x_stall_i_A =    (LTU_A == 1) ? 2'd3 : 
+                            d_stall_o_A;
+    // assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
+    //                         (B_need_A || mem_hazard) ? 2'd1 :
+    //                         (LTU_B == 1) ? 2'd3 :
+    //                         d_stall_o_B;
+    assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
+                            (LTU_B == 1) ? 2'd3 :
+                            (B_need_A || mem_hazard) ? 2'd1 :
+                            d_stall_o_B;
 
     
 
@@ -155,6 +161,9 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_A_PC_Inc_One(.a(f2d_pc_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one_A));
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
 
+
+
+    // *** NZP and PC Calculation *** //
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
 
@@ -382,7 +391,7 @@ module lc4_processor(input wire         clk,             // main clock
                                     ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
                                     nzp_alu_B;
     
-    
+
 
     // *** Bypass logics BEGIN ***//
     // MX, WX bypass //
