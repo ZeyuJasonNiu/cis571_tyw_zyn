@@ -126,8 +126,11 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(2, 2'b10) m_stall_reg_B (.in(x_stall_o_B), .out(m_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2, 2'b10) w_stall_reg_B (.in(m_stall_o_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
-    assign d_stall_i_B =    (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+    // assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
+    // assign d_stall_i_B =    (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+    assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+    assign d_stall_i_B =    (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+
     assign x_stall_i_A =    (LTU_A == 1) ? 2'd3 : 
                             d_stall_o_A;
     assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
@@ -162,9 +165,7 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
 
     assign o_cur_pc =   f2d_pc_A;
-    assign next_pc_A =  (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
-           (x_stall_i_B == 0 && x_stall_i_A == 0) ? f2d_pc_plus_two_A :
-           f2d_pc_plus_one_A;
+
 
 
     // *** NZP and PC Calculation *** //
@@ -174,9 +175,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign is_all_zero_A = o_nzp_reg_val_A & x2m_bus_A[11:9];
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
-    // assign next_pc_A = (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
-    //        (x_stall_i_B != 0 && x_stall_i_A == 0) ? f2d_pc_plus_two_A :
-    //        f2d_pc_plus_one_A;
+    assign next_pc_A =  (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
+           (x_stall_i_B == 0 && x_stall_i_A == 0) ? f2d_pc_plus_two_A :
+           f2d_pc_plus_one_A;
 
     assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
