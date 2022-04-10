@@ -117,22 +117,25 @@ module lc4_processor(input wire         clk,             // main clock
     wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_o_B;
 
     Nbit_reg #(2, 2'b10) d_stall_reg_A (.in(d_stall_i_A), .out(d_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)); 
-    Nbit_reg #(2, 2'b10) m_stall_reg_A (.in(x_stall_o_A), .out(m_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) w_stall_reg_A (.in(m_stall_o_A), .out(test_stall_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst)); 
+    Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(test_stall_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) m_stall_reg_A (.in(x_stall_o_A), .out(m_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) w_stall_reg_A (.in(m_stall_o_A), .out(test_stall_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     Nbit_reg #(2, 2'b10) d_stall_reg_B (.in(d_stall_i_B), .out(d_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) x_stall_reg_B (.in(x_stall_i_B), .out(x_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) m_stall_reg_B (.in(x_stall_o_B), .out(m_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(2, 2'b10) w_stall_reg_B (.in(m_stall_o_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) x_stall_reg_B (.in(x_stall_i_B), .out(x_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) x_stall_reg_B (.in(x_stall_i_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) m_stall_reg_B (.in(x_stall_o_B), .out(m_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    // Nbit_reg #(2, 2'b10) w_stall_reg_B (.in(m_stall_o_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
     assign d_stall_i_B =    (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
-    assign x_stall_i_A =    (LTU_A == 1) ? 2'd3 : 
+
+    assign x_stall_i_A =    (LTU_A == 1'b1) ? 2'd3 : 
                             d_stall_o_A;
-    assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
+    assign x_stall_i_B =    (LTU_A == 1'b1) ? 2'd1 :
                             ((B_need_A || mem_hazard) && (~LTU_between_DA_DB)) ? 2'd1 :
-                            (LTU_B == 1) ? 2'd3 :
+                            (LTU_B == 1'b1) ? 2'd3 :
                             d_stall_o_B;
     // assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
     //                         (LTU_B == 1) ? 2'd3 :
@@ -491,6 +494,7 @@ module lc4_processor(input wire         clk,             // main clock
    always @(posedge gwe) begin
        if ($time >= 100 && $time <=5000) begin
        $display("Time = %d, stall_A =  %h, stall_B = %h \n \n ", $time, test_stall_A, test_stall_B);
+       $display(" ******************** New cycle ********************\n");
        end
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
