@@ -128,8 +128,8 @@ module lc4_processor(input wire         clk,             // main clock
 
     // assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1) ? 2'd2 : 2'd0;
     // assign d_stall_i_B =    (x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
-    assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
-    assign d_stall_i_B =    (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 : 2'd0;
+    assign d_stall_i_A =    (x_br_taken_or_ctrl_A == 1'b1 || x_br_taken_or_ctrl_B == 1'b1) ? 2'd2 : 2'd0;
+    assign d_stall_i_B =    (x_br_taken_or_ctrl_A == 1'b1 || x_br_taken_or_ctrl_B == 1'b1) ? 2'd2 : 2'd0;
 
     assign x_stall_i_A =    (LTU_A == 1) ? 2'd3 : 
                             d_stall_o_A;
