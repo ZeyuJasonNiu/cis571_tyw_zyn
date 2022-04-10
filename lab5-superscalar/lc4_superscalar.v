@@ -65,7 +65,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign pipe_switch = (x_stall_i_B != 0 && x_stall_i_A == 0) ? 1 : 0;
-    
+
     assign d_i_bus_A =  (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                         (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
                         i_cur_insn_A;
@@ -431,7 +431,7 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       if ($time >= 1 && $time <=20000) begin
+       if ($time >= 1 && $time <=2000) begin
        $display("**************** New Cycle ***************");
        $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n \n ", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
