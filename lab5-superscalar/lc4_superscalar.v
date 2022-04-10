@@ -57,7 +57,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign d_i_bus_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
-                       (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
+                    //    (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
                        i_cur_insn_A;
     assign d_i_bus_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                        (x_stall_i_B != 0 && x_stall_i_A == 0) ? i_cur_insn_A : 
