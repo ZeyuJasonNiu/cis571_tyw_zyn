@@ -145,8 +145,8 @@ module lc4_processor(input wire         clk,             // main clock
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
     assign next_pc_A = (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
-           (x_stall_i_B != 0 && x_stall_i_A == 0) ? f2d_pc_plus_one_A :
-           f2d_pc_plus_two_A;
+           (x_stall_i_B == 0 && x_stall_i_A == 0) ? f2d_pc_plus_two_A :
+           f2d_pc_plus_one_A;
 
     assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
@@ -266,6 +266,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B)
         );
+
     
     // ************** Register for dmem parameter's ************** //
     wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
