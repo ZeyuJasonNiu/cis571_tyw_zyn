@@ -54,12 +54,12 @@ module lc4_processor(input wire         clk,             // main clock
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
     wire pipe_switch;
 
-    Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(~LTU_A && ~LTU_B), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we((~LTU_A) && (~LTU_B)), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_final_A), .out(x2m_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg_A (.in(m2w_bus_A), .out(w_o_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    Nbit_reg #(16, 16'b0) d_insn_reg_B (.in(d_i_bus_B), .out(d2x_bus_tmp_B), .clk(clk), .we(~LTU_A && ~LTU_B), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) d_insn_reg_B (.in(d_i_bus_B), .out(d2x_bus_tmp_B), .clk(clk), .we((~LTU_A) && (~LTU_B)), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) x_insn_reg_B (.in(d2x_bus_final_B), .out(x2m_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
