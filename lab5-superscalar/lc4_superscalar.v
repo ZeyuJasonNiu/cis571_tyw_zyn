@@ -223,7 +223,7 @@ module lc4_processor(input wire         clk,             // main clock
         .is_control_insn(d2x_bus_B[16]),
         .insn(d2x_bus_B[15:0]));
 
-    assign Stall_only_B = ((x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3)) && (x_stall_i_A == 2'b0);
+    assign Stall_only_B = ((x_stall_i_B == 2'd1) || (x_stall_i_B == 2'd2) || (x_stall_i_B == 2'd3)) && (x_stall_i_A == 2'd0);
     
                 
     // ************** Superscaler Regfile ************** //       
@@ -344,10 +344,12 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
                 rt_bypass_res_A, rt_bypass_res_B,
                 wm_bypass_res_A, wm_or_mm_bypass_res_B;
+
     wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
          rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
          rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
          rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
+
     assign rs_MB_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1);
     assign rs_MA_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1);
     assign rs_WB_XA_bypass = (x2m_bus_A[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1);
@@ -422,6 +424,13 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
+
+       if ($time >= 100 && $time <=1000) begin
+       $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, 
+                test_cur_insn_A = %b, test_cur_insn_B = %b\n \n ", 
+                $time, test_stall_A, test_stall_B, o_cur_pc, test_cur_insn_A, test_cur_insn_B);
+       $display(" ******************** New cycle ******************** ");
+       end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
