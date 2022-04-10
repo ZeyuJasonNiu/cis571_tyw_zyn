@@ -130,16 +130,16 @@ module lc4_processor(input wire         clk,             // main clock
     
 
     // ************** PC Registers ************** //
-    wire [15:0] next_pc_A, f2d_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
-    wire [15:0] f2d_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
+    wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
+    wire [15:0] f2d_pc_B, d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
     Nbit_reg #(16, 16'h8200) f_pc_reg_A (.in(next_pc_A), .out(f2d_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(f2d_pc_A), .out(d2x_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(d_i_pc_A), .out(d2x_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    x_pc_reg_A (.in(d2x_pc_A), .out(x2m_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    m_pc_reg_A (.in(x2m_pc_A), .out(m2w_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    w_pc_reg_A (.in(m2w_pc_A), .out(w_o_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    Nbit_reg #(16, 16'b0)    d_pc_reg_B (.in(f2d_pc_plus_one_A), .out(d2x_pc_B), .clk(clk), .we(~LTU_B), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    d_pc_reg_B (.in(d_i_pc_B), .out(d2x_pc_B), .clk(clk), .we(~LTU_B), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    x_pc_reg_B (.in(d2x_pc_B), .out(x2m_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    m_pc_reg_B (.in(x2m_pc_B), .out(m2w_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    w_pc_reg_B (.in(m2w_pc_B), .out(w_o_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -151,6 +151,9 @@ module lc4_processor(input wire         clk,             // main clock
            (x_stall_i_B != 0 && x_stall_i_A == 0) ? f2d_pc_plus_one_A :
            f2d_pc_plus_two_A;
 
+    assign d_i_pc_A =   (Pipe_Switch) ? d2x_pc_B : (x_stall_i_A) ? d2x_pc_A : f2d_pc_A;
+
+    assign d_i_pc_B =   (Pipe_Switch) ? f2d_pc_A : (x_stall_i_B) ? d2x_pc_B : f2d_pc_plus_one_A;
 
 
     // ************** NZP and F/D Flush ************** //
