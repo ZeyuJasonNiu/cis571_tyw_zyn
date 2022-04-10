@@ -223,7 +223,7 @@ module lc4_processor(input wire         clk,             // main clock
         .is_control_insn(d2x_bus_B[16]),
         .insn(d2x_bus_B[15:0]));
 
-    assign Stall_only_B = (x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3) && (x_stall_i_A == 2'b0);
+    assign Stall_only_B = ((x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3)) && (x_stall_i_A == 2'b0);
     
                 
     // ************** Superscaler Regfile ************** //       
