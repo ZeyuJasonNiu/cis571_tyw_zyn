@@ -153,7 +153,7 @@ module lc4_processor(input wire         clk,             // main clock
     
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
     assign d2x_bus_final_A =    ((LTU_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : 
-                                (x_stall_i_B != 0 && x_stall_i_A == 0) : d2x_bus_B :
+                                (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B :
                                 d2x_bus_A;
     assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
     assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
@@ -192,6 +192,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // Decoder and Pipe Switch //
+    will Stall_only_B;
     lc4_decoder Decoder_Pipe_A(
         .r1sel(d2x_bus_A[33:31]), 
         .r2sel(d2x_bus_A[30:28]),
@@ -222,7 +223,7 @@ module lc4_processor(input wire         clk,             // main clock
         .is_control_insn(d2x_bus_B[16]),
         .insn(d2x_bus_B[15:0]));
 
-    wire Stall_only_B = (x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3) && (x_stall_i_B == 2'b0);
+    assign Stall_only_B = (x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3) && (x_stall_i_B == 2'b0);
     
                 
     // ************** Superscaler Regfile ************** //       
