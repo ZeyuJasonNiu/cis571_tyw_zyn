@@ -430,9 +430,8 @@ module lc4_processor(input wire         clk,             // main clock
         $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, test_cur_insn_A = %b, test_cur_insn_B = %b\ns", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, test_cur_insn_A, test_cur_insn_B);
         // stall values in different stages //
-        $display("STALL_B : %h %h %h %h %h %h %h %h \n", d_stall_i_B, d_stall_o_B,x_stall_i_B,
-                d_stall_o_B, m_stall_i_B, m_stall_o_B, w_stall_i_B, w_stall_o_B);
-
+        $display("STALL_B : di = %h, do = %h, xi = %h, xo = %h, mo = %h. \n", d_stall_i_B, 
+        d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_o_B);
        $display(" ******************** New cycle ******************** ");
        end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
