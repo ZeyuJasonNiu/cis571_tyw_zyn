@@ -159,9 +159,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign is_all_zero_A = o_nzp_reg_val_A & x2m_bus_A[11:9];
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
-    assign next_pc_A = (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
-           (x_stall_i_B == 0 || x_stall_i_A != 0) ? f2d_pc_plus_two_A :
-           f2d_pc_plus_one_A;
+    // assign next_pc_A = (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
+    //        (x_stall_i_B == 0 || x_stall_i_A != 0) ? f2d_pc_plus_two_A :
+    //        f2d_pc_plus_one_A;
 
     assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
@@ -207,6 +207,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign  write_back_A = (w_o_bus_A[19] == 1) ? w_D_o_A: w_O_o_A;
     assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o_B: w_O_o_B;
 
+
+    wire Pipe_Switch;
+    assign Pipe_Switch = (x_stall_i_A == 0) && (x_stall_i_B != 0);
     lc4_decoder Decoder_Pipe_A(
         .r1sel(d2x_bus_A[33:31]), 
         .r2sel(d2x_bus_A[30:28]),
