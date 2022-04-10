@@ -138,6 +138,8 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_A_PC_Inc_One(.a(f2d_pc_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one_A));
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
 
+
+    // ************** NZP and F/D Flush ************** //
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
 
@@ -145,8 +147,8 @@ module lc4_processor(input wire         clk,             // main clock
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
     assign next_pc_A = (x_br_taken_or_ctrl_A == 1) ? o_alu_result_A : 
-           (x_stall_i_B == 0 && x_stall_i_A == 0) ? f2d_pc_plus_two_A :
-           f2d_pc_plus_one_A;
+           (x_stall_i_B != 0 && x_stall_i_A == 0) ? f2d_pc_plus_one_A :
+           f2d_pc_plus_two_A;
 
     assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
@@ -266,7 +268,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B)
         );
-
+        
     
     // ************** Register for dmem parameter's ************** //
     wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
