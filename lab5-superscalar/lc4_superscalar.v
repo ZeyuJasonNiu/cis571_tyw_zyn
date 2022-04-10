@@ -41,13 +41,16 @@ module lc4_processor(input wire         clk,             // main clock
    /***  YOUR CODE HERE ***/
    // Instruction Registers
     assign led_data = switch_data; 
+
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
+
     wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
     wire mem_hazard, B_need_A;
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
     wire pipe_switch;
+
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_final_A), .out(x2m_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
@@ -59,9 +62,9 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign pipe_switch = (x_stall_i_B != 0 && x_stall_i_A == 0) ? 1 : 0;
-    assign d_i_bus_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
-                       (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
-                       i_cur_insn_A;
+    assign d_i_bus_A =  (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
+                        (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
+                        i_cur_insn_A;
     assign d_i_bus_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                        (x_stall_i_B != 0 && x_stall_i_A == 0) ? i_cur_insn_A : 
                        i_cur_insn_B;
@@ -149,7 +152,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
 
-    assign next_pc_A = (x_stall_i_A) ? f2d_pc_A : 
+    assign next_pc_A =  (x_stall_i_A) ? f2d_pc_A : 
                         pipe_switch ? f2d_pc_plus_one_A :
                         x_br_taken_or_ctrl_A ? o_alu_result_A :
                         x_br_taken_or_ctrl_B ? o_alu_result_B : 
@@ -424,8 +427,8 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       if ($time >= 1 && $time <=500) begin
-       $display("=============================================");
+       if ($time >= 1 && $time <=2000) begin
+       $display("**************** New Cycle ***************");
        $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n \n ", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
        $display("x_stall_i_A %d, x_stall_i_B %d, x_br_taken_or_ctrl_A %b, x_br_taken_or_ctrl_B %b, LTU_A %b, LTU_B %b, B_need_A %b, d2x_bus_A[16] %b, d2x_bus_A[17] %b, d2x_bus_A %b, mem_hazard %b \n \n", 
