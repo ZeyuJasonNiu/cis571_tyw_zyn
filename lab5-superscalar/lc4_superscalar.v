@@ -427,9 +427,9 @@ module lc4_processor(input wire         clk,             // main clock
    always @(posedge gwe) begin
 
        if ($time >= 100 && $time < 2500) begin
-        $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, test_cur_insn_A = %b, test_cur_insn_B = %b\n \n ", 
+        $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h, test_cur_insn_A = %b, test_cur_insn_B = %b\n", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, test_cur_insn_A, test_cur_insn_B);
-        $display("STALL_B : %h %h %h %h %h %h %h %h", D_Stall_in_bits_B,D_Stall_out_bits_B,X_Stall_in_bits_B,
+        $display("STALL_B : %h %h %h %h %h %h %h %h \n", D_Stall_in_bits_B,D_Stall_out_bits_B,X_Stall_in_bits_B,
         X_Stall_out_bits_B, M_Stall_in_bits_B, M_Stall_out_bits_B, 
         W_Stall_in_bits_B, W_Stall_out_bits_B);
        $display(" ******************** New cycle ******************** ");
