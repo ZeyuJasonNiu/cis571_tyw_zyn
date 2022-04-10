@@ -139,7 +139,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'b0)    m_pc_reg_A (.in(x2m_pc_A), .out(m2w_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    w_pc_reg_A (.in(m2w_pc_A), .out(w_o_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    Nbit_reg #(16, 16'b0)    d_pc_reg_B (.in(f2d_pc_B), .out(d2x_pc_B), .clk(clk), .we(~LTU_B), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)    d_pc_reg_B (.in(f2d_pc_plus_one_A), .out(d2x_pc_B), .clk(clk), .we(~LTU_B), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    x_pc_reg_B (.in(d2x_pc_B), .out(x2m_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    m_pc_reg_B (.in(x2m_pc_B), .out(m2w_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    w_pc_reg_B (.in(m2w_pc_B), .out(w_o_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
