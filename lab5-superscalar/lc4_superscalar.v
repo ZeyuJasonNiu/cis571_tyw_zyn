@@ -125,7 +125,7 @@ module lc4_processor(input wire         clk,             // main clock
     
     // PC Registers
     wire [15:0] next_pc_A, d_i_pc_A, f2d_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
-    wire [15:0] d_i_pc_A, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
+    wire [15:0] d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
     Nbit_reg #(16, 16'h8200) f_pc_reg_A (.in(next_pc_A), .out(f2d_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(d_i_pc_A), .out(d2x_pc_A), .clk(clk), .we(~LTU_A), .gwe(gwe), .rst(rst));
