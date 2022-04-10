@@ -57,11 +57,12 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
     assign d_i_bus_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
-                       (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
+                    //    (x_stall_i_B != 0 && x_stall_i_A == 0) ? d2x_bus_B[15:0] : 
                        i_cur_insn_A;
     assign d_i_bus_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                        (x_stall_i_B != 0 && x_stall_i_A == 0) ? i_cur_insn_A : 
                        i_cur_insn_B;
+
     assign LTU_between_DA_DB = (d2x_bus_A[19]) && 
                                (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == d2x_bus_A[27:25])) || 
                                ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == d2x_bus_A[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0));
@@ -151,10 +152,14 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
     
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
-    assign d2x_bus_final_A = ((LTU_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_A;
+    assign d2x_bus_final_A =    ((LTU_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : 
+                                (x_stall_i_B != 0 && x_stall_i_A == 0) : d2x_bus_B :
+                                d2x_bus_A;
     assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
     assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
-    // Regiters for A, B, O, D //
+
+
+    // ************** Regiters for A, B, O, D ************** //
     wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
                 m_B_o_A, m_O_i_A, m_O_o_A, 
                 w_O_o_A, w_D_i_A, w_D_o_A;
@@ -184,6 +189,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign  m_O_i_B = (d2x_bus_B[16] == 1) ? d2x_pc_B : o_alu_result_B;
     assign  write_back_A = (w_o_bus_A[19] == 1) ? w_D_o_A: w_O_o_A;
     assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o_B: w_O_o_B;
+
+
+    // Decoder and Pipe Switch //
     lc4_decoder Decoder_Pipe_A(
         .r1sel(d2x_bus_A[33:31]), 
         .r2sel(d2x_bus_A[30:28]),
@@ -213,12 +221,11 @@ module lc4_processor(input wire         clk,             // main clock
         .is_branch(d2x_bus_B[17]), 
         .is_control_insn(d2x_bus_B[16]),
         .insn(d2x_bus_B[15:0]));
+
+    wire Stall_only_B = (x_stall_i_B == 2'b1) || (x_stall_i_B == 2'b2) || (x_stall_i_B == 2'b3) && (x_stall_i_B == 2'b0);
     
-    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
-    wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
-                rt_bypass_res_A, rt_bypass_res_B,
-                wm_bypass_res_A, wm_or_mm_bypass_res_B;                
-           
+                
+    // ************** Superscaler Regfile ************** //       
     lc4_regfile_ss Superscaler_Regfile(
         .clk(clk),
         .gwe(gwe),
@@ -238,21 +245,27 @@ module lc4_processor(input wire         clk,             // main clock
         .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22]));
     wire [15:0] o_alu_result_A, o_alu_result_B;
+
+
+
+    // ************** Superscaler ALUs ************** //     
     lc4_alu ALU_Pipe_A( 
         .i_insn(x2m_bus_A[15:0]),
         .i_pc(x2m_pc_A),
         .i_r1data(rs_bypass_res_A),
         .i_r2data(rt_bypass_res_A),
-        .o_result(o_alu_result_A));
+        .o_result(o_alu_result_A)
+        );
     
     lc4_alu ALU_Pipe_B( 
         .i_insn(x2m_bus_B[15:0]),
         .i_pc(x2m_pc_B),
         .i_r1data(rs_bypass_res_B),
         .i_r2data(rt_bypass_res_B),
-        .o_result(o_alu_result_B));
+        .o_result(o_alu_result_B)
+        );
     
-    //  Register for dmem parameter's
+    // ************** Register for dmem parameter's ************** //
     wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
     assign test_dmem_we_A = m2w_bus_A[18];
     assign test_dmem_we_B = m2w_bus_B[18];
@@ -284,7 +297,9 @@ module lc4_processor(input wire         clk,             // main clock
         .gwe(gwe),
         .rst(rst));
     defparam Superscalar_NZP_Reg_B.n = 3;
-    // Registers for NZP
+
+
+    // ************** Registers for NZP ************** //
     wire [2:0] i_regfile_wdata_sign_A, m_nzp_o_A, w_nzp_i_A,
                i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
     wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
@@ -323,7 +338,11 @@ module lc4_processor(input wire         clk,             // main clock
                                     ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
                                     nzp_alu_B;
     
-    // MX, WX bypass
+    // ************** MX, WX bypass ************** //
+    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
+    wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
+                rt_bypass_res_A, rt_bypass_res_B,
+                wm_bypass_res_A, wm_or_mm_bypass_res_B;
     wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
          rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
          rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
