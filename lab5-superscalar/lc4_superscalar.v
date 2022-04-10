@@ -179,10 +179,10 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
     
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
-    assign d2x_bus_final_A = ((LTU_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_A;
+    assign d2x_bus_final_A = ((LTU_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1'b1) ? {34{1'b0}} : d2x_bus_A;
 
     assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
-    assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
+    assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1'b1) ? {34{1'b0}} : d2x_bus_B;
 
 
 
@@ -490,7 +490,7 @@ module lc4_processor(input wire         clk,             // main clock
     */
    always @(posedge gwe) begin
        if ($time >= 100 && $time <=5000) begin
-       $display("Time = %d, stall_A =  %h, stall_B = %h \n \n ", $time, test_stall_A, test_stall_B);
+       $display("Time = %d, stall_A = %h, stall_B = %h, o_cur_pc = %h\n \n ", $time, test_stall_A, test_stall_B, o_cur_pc);
        $display(" ******************** New cycle ******************** ");
        end
       // if (o_dmem_we)
