@@ -113,6 +113,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // *** Stall Registers *** //
+    wire only_B_stall;              // Pipe Switch only happens when Pipe B stalls.
     wire [1:0] d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
     wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_o_B;
 
@@ -137,10 +138,9 @@ module lc4_processor(input wire         clk,             // main clock
                             (B_need_A || mem_hazard) ? 2'd1 :
                             (LTU_B == 1 && (~LTU_between_DA_DB)) ? 2'd3 :
                             d_stall_o_B;
-    // assign x_stall_i_B =    (LTU_A == 1) ? 2'd1 :
-    //                         (LTU_B == 1) ? 2'd3 :
-    //                         (B_need_A || mem_hazard) ? 2'd1 :
-    //                         d_stall_o_B;
+
+    assign only_B_stall = ((x_stall_i_B == 2'd1) || (x_stall_i_B == 2'd2) || (x_stall_i_B == 2'd3)) && (x_stall_i_A == 2'd0);
+
 
     
 
