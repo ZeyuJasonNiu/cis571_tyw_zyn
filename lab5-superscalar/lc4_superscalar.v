@@ -192,7 +192,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // Decoder and Pipe Switch //
-    will Stall_only_B;
+    wire Stall_only_B;
     lc4_decoder Decoder_Pipe_A(
         .r1sel(d2x_bus_A[33:31]), 
         .r2sel(d2x_bus_A[30:28]),
