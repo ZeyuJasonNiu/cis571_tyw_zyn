@@ -186,33 +186,34 @@ module lc4_processor(input wire         clk,             // main clock
     wire W_Ctrl_Update_NZP_B;
 
 
-
-
-
     // PC
     // pc wires attached to the PC register's ports
     wire [15:0]   pc;      // Current program counter (read out from pc_reg)
     wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
 
-    assign o_cur_pc = pc;
-    wire [15:0] D_PC_A;
-    wire [15:0] D_I_PC_A;
-    wire [15:0] D_PC_B;
-    wire [15:0] D_I_PC_B;
+
+    wire [15:0] D_PC_A, D_I_PC_A;
+    wire [15:0] D_PC_B, D_I_PC_B;
 
     // PC adder
-    wire [15:0] PC_ADD_ONE_A;
-    wire [15:0] D_PC_ADD_ONE_A;
-    wire [15:0] PC_ADD_ONE_B;
-    wire [15:0] D_PC_ADD_ONE_B;
+    wire [15:0] PC_ADD_ONE_A, D_PC_ADD_ONE_A;
+    wire [15:0] PC_ADD_ONE_B, D_PC_ADD_ONE_B;
     cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
     cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
 
 
 
     // ************ PC registers ************ //
+    
     // Program counter register, starts at 8200h at bootup
+    wire [15:0]   pc;                                       // Current program counter (read out from pc_reg)
+    wire [15:0]   next_pc;                                  // Next program counter (you compute this and feed it into next_pc)
     Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    wire [15:0] PC_ADD_ONE_A, D_PC_ADD_ONE_A;
+    wire [15:0] PC_ADD_ONE_B, D_PC_ADD_ONE_B;                   // Wires for CLAs
+    wire [15:0] D_PC_A, D_I_PC_A;
+    wire [15:0] D_PC_B, D_I_PC_B;                               // Wires for Intermediate PC values
 
     Nbit_reg #(16, 16'h0000) D_PC_Reg_A(.in(D_I_PC_A), .out( D_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) X_PC_Reg_A(.in(D_PC_A), .out( X_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
@@ -223,7 +224,12 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) X_PC_Reg_B(.in(D_PC_B), .out( X_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     Nbit_reg #(16, 16'h0000) M_PC_Reg_B(.in(X_PC_B), .out( M_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_B | rst ));
     Nbit_reg #(16, 16'h0000) W_PC_Reg_B(.in(M_PC_B), .out( W_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-        
+
+    //CLAs for PC+1 or PC+2
+    cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
+    cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
+
+    assign o_cur_pc = pc;    
     assign D_I_PC_A = (Pipe_Switch) ? D_PC_B : (Stall_A) ? D_PC_A : pc;
     assign D_I_PC_B = (Pipe_Switch) ? pc :(Stall_B) ? D_PC_B : PC_ADD_ONE_A;
     // Calculates next PC Value
