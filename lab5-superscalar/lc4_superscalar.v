@@ -51,8 +51,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
-    wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
-    wire mem_hazard, B_need_A;
+
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
     wire pipe_switch;
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
@@ -68,6 +67,9 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // ************ Pipe Switching and LTU Classifier ************ //
+    wire    LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
+    wire    mem_hazard, B_need_A;
+    wire    LTBr_A, LTBr_B;
     assign pipe_switch =    ~x_flush_A && 
                             (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);           // Case for Pipe Switching
 
@@ -102,13 +104,14 @@ module lc4_processor(input wire         clk,             // main clock
     //~~~~~~~~~~~~ LTU situations is in general 4-types ~~~~~~~~~~~~ //
     assign  LTU_A =  LTU_within_A || LTU_between_XB_DA;                  // Case1: LTU in Pipe-A
     assign  LTU_B =  LTU_within_B || LTU_between_XA_DB;                  // Case2: LTU in Pipe-B
+
     assign  B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
                         ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                        (d2x_bus_B[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
+                        (d2x_bus_A[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
+
     assign  mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);           // Case4: Both A & B are dmem instrucitons
 
     // ~~~~~~~~~~~~ Pipe X.A /B IS A LDR, which is used by a following BR insns D.A ~~~~~~~~~~~~ //
-    wire    LTBr_A, LTBr_B;
     assign  LTBr_A = d2x_bus_A[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);
     assign  LTBr_B = d2x_bus_B[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]); 
 
