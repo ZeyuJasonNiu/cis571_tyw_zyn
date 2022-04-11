@@ -58,12 +58,12 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign pipe_switch = (x_stall_i_B != 0 && x_stall_i_A == 0) ? 1 : 0;
+    assign pipe_switch = (d_stall_i_B != 0 && d_stall_i_A == 0) ? 1 : 0;
     assign d_i_bus_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
                        pipe_switch ? d2x_bus_B[15:0] : 
                        i_cur_insn_A;
     assign d_i_bus_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? {16{1'b0}} : 
-                       (x_stall_i_B != 0 && x_stall_i_A == 0) ? i_cur_insn_A : 
+                       (d_stall_i_B != 0 && d_stall_i_A == 0) ? i_cur_insn_A : 
                        i_cur_insn_B;
     
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
@@ -155,17 +155,17 @@ module lc4_processor(input wire         clk,             // main clock
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
 
-    assign next_pc_A = (x_stall_i_A != 0) ? f2d_pc_A : 
+    assign next_pc_A = (d_stall_i_A != 0) ? f2d_pc_A : 
                         pipe_switch ? f2d_pc_plus_one_A :
                         x_br_taken_or_ctrl_A ? o_alu_result_A :
                         x_br_taken_or_ctrl_B ? o_alu_result_B : 
                         f2d_pc_plus_two_A;
     
     assign d_i_pc_A = (pipe_switch) ? d2x_pc_B :  
-                      (x_stall_i_A != 0) ? d2x_pc_A :
+                      (d_stall_i_A != 0) ? d2x_pc_A :
                       f2d_pc_A;
     assign d_i_pc_B = (pipe_switch) ? f2d_pc_A :  
-                      (x_stall_i_B != 0) ? d2x_pc_B :
+                      (d_stall_i_B != 0) ? d2x_pc_B :
                       f2d_pc_plus_one_A;
 
     assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
