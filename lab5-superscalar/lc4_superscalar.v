@@ -15,6 +15,7 @@ module lc4_processor(input wire         clk,             // main clock
                      input wire [15:0]  i_cur_dmem_data, // contents of o_dmem_addr
                      output wire        o_dmem_we,       // data memory write enable
                      output wire [15:0] o_dmem_towrite,  // data to write to o_dmem_addr if we is set
+
                      // testbench signals (always emitted from the WB stage)
                      output wire [ 1:0] test_stall_A,        // is this a stall cycle?  (0: no stall,
                      output wire [ 1:0] test_stall_B,        // 1: pipeline stall, 2: branch stall, 3: load stall)
@@ -38,6 +39,7 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [15:0] test_dmem_addr_B,
                      output wire [15:0] test_dmem_data_A,    // data to read/write from/to memory
                      output wire [15:0] test_dmem_data_B,
+                     
                      // zedboard switches/display/leds (ignore if you don't want to control these)
                      input  wire [ 7:0] switch_data,         // read on/off status of zedboard's 8 switches
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
@@ -147,6 +149,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_B = ((d2x_bus_B[15:0] == 16'h0000) && (d2x_pc_B == 16'h0000)) ? 2'd2 : d_stall_i_B;
     assign m_stall_i_B = (x_br_taken_or_ctrl_A == 1) ? 2'd2 : x_stall_o_B;
 
+
+
+    // ************************ Flush Logics ************************ //
     wire    d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
@@ -305,7 +310,6 @@ module lc4_processor(input wire         clk,             // main clock
         .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22])
         );
-
 
 
 
