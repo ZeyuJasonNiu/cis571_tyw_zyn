@@ -520,7 +520,7 @@ module lc4_processor(input wire         clk,             // main clock
     */
    always @(posedge gwe) begin
        if ($time >= 1100 && $time <=1600) begin
-        $display("=============================================");
+        $display(" ******************* New Cycle ******************* ");
         $display("Time = %d, test_stall_A = %h, test_stall_B = %h, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
         $display("d_stall_i_A %d, d_stall_i_B %d, test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
