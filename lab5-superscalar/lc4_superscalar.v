@@ -81,59 +81,30 @@ module lc4_processor(input wire         clk,             // main clock
                             (W_insn_LDR_B) ? W_Mem_B:
                             16'h0000;                               
     // Define Control Signals
-    wire D_Ctrl_W_R7_A;
-    wire X_Ctrl_W_R7_A;
-    wire M_Ctrl_W_R7_A;
-    wire W_Ctrl_W_R7_A;
+    wire D_Ctrl_W_R7_A, X_Ctrl_W_R7_A, M_Ctrl_W_R7_A, W_Ctrl_W_R7_A;
+    wire D_Ctrl_W_R7_B, X_Ctrl_W_R7_B, M_Ctrl_W_R7_B, W_Ctrl_W_R7_B;
 
-    wire D_Ctrl_RF_WE_A;
-    wire X_Ctrl_RF_WE_A;
-    wire M_Ctrl_RF_WE_A;  
-    wire W_Ctrl_RF_WE_A;
+    wire D_Ctrl_RF_WE_A, X_Ctrl_RF_WE_A, M_Ctrl_RF_WE_A, W_Ctrl_RF_WE_A;
+    wire D_Ctrl_RF_WE_B, X_Ctrl_RF_WE_B, M_Ctrl_RF_WE_B, W_Ctrl_RF_WE_B;
 
-    wire D_Ctrl_Update_NZP_A;
-    wire X_Ctrl_Update_NZP_A;
+    wire D_Ctrl_Update_NZP_A, X_Ctrl_Update_NZP_A;
+    wire D_Ctrl_Update_NZP_B, X_Ctrl_Update_NZP_B;
 
     wire D_Ctrl_Control_insn_A;
-    wire X_Ctrl_PC_JMP_A;
-    wire X_Ctrl_BR_JMP_A;
-    wire D_insn_BR_A;
-    wire X_insn_BR_A;
-    wire D_insn_LDR_A;
-    wire X_insn_LDR_A;
-    wire M_insn_LDR_A;
-    wire W_insn_LDR_A;
-    wire D_insn_STR_A;
-    wire X_insn_STR_A;
-    wire M_insn_STR_A;
-    wire W_insn_STR_A;
-    
-    wire D_Ctrl_W_R7_B;
-    wire X_Ctrl_W_R7_B;
-    wire M_Ctrl_W_R7_B;
-    wire W_Ctrl_W_R7_B;
+    wire D_Ctrl_Control_insn_B;    
 
-    wire D_Ctrl_RF_WE_B;
-    wire X_Ctrl_RF_WE_B;
-    wire M_Ctrl_RF_WE_B;  
-    wire W_Ctrl_RF_WE_B;
+    wire X_Ctrl_PC_JMP_A, X_Ctrl_BR_JMP_A;
+    wire X_Ctrl_PC_JMP_B, X_Ctrl_BR_JMP_B;
 
-    wire D_Ctrl_Update_NZP_B;
-    wire X_Ctrl_Update_NZP_B;
+    wire D_insn_BR_A,X_insn_BR_A;
+    wire D_insn_BR_B,X_insn_BR_B;
 
-    wire D_Ctrl_Control_insn_B;
-    wire X_Ctrl_PC_JMP_B;
-    wire X_Ctrl_BR_JMP_B;
-    wire D_insn_BR_B;
-    wire X_insn_BR_B;
-    wire D_insn_LDR_B;
-    wire X_insn_LDR_B;
-    wire M_insn_LDR_B;
-    wire W_insn_LDR_B;
-    wire D_insn_STR_B;
-    wire X_insn_STR_B;
-    wire M_insn_STR_B;
-    wire W_insn_STR_B;
+    wire D_insn_LDR_A, X_insn_LDR_A, M_insn_LDR_A, W_insn_LDR_A;
+    wire D_insn_LDR_B, X_insn_LDR_B, M_insn_LDR_B, W_insn_LDR_B;
+
+    wire D_insn_STR_A, X_insn_STR_A, M_insn_STR_A, W_insn_STR_A;
+    wire D_insn_STR_B, X_insn_STR_B, M_insn_STR_B, W_insn_STR_B;
+   
 
 
     // X register wires
