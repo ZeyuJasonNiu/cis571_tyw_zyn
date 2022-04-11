@@ -774,46 +774,58 @@ module lc4_processor(input wire         clk,             // main clock
                             ((NZP_B[0]|NZP_B[1]) & sub_op_BRzp_B) | ((NZP_B[0]|NZP_B[2]) & sub_op_BRnp_B) | ((NZP_B[1]|NZP_B[2]) & sub_op_BRnz_B) | ((NZP_B[1]|NZP_B[0]|NZP_B[2]) & sub_op_BRnzp_B);
     assign X_Ctrl_PC_JMP_B = (X_insn_BR_B & X_Ctrl_BR_JMP_B) | X_Ctrl_Control_insn_B;
 
-    // // stall logic 
-    // // TO DO
-    // // stall happens when 1) load to use 2) load to BR
-    // wire Stall_Load_to_Branch;
-    // assign Stall_Load_to_Branch = D_insn_BR & X_insn_LDR;
-    // wire Stall_load_to_Use;
-    // assign Stall_load_to_Use = X_insn_LDR & (((D_Rs == X_Rd) &R1RE) | ((D_Rt == X_Rd) & !D_insn_STR &R2RE));
-    // wire Stall;
-    // assign Stall = Stall_Load_to_Branch | Stall_load_to_Use;
-    // assign D_Flush = X_Ctrl_PC_JMP;
 
-    // New stall
+
+    //  ************  LTU Dependence Classifier  ************ //
+    wire A_LTU_dependence, B_LTU_dependence, AB_LTU_dependence, AB_Structural_hazard;
+    wire A_Load_to_Branch, B_Load_to_Branch;
+
     // 1. A LTU DX dependence; from A or B
-    wire A_LTU_dependence;
     assign A_LTU_dependence = ((X_insn_LDR_A & (((D_Rs_A == X_Rd_A) & R1RE_A) | ((D_Rt_A == X_Rd_A) & !D_insn_STR_A &R2RE_A)) ) 
                             & (X_Rd_A != X_Rd_B))                          // Nullified
                             | ((X_insn_LDR_A & (((D_Rs_B == X_Rd_A) & R1RE_B) | ((D_Rt_B == X_Rd_A) & !D_insn_STR_B &R2RE_B)) ) 
-                            & (X_Rd_A != X_Rd_B) & (X_Rd_A != D_Rd_A) )          // Nullified
-                            ; 
+                            & (X_Rd_A != X_Rd_B) & (X_Rd_A != D_Rd_A) )          // Nullified                            ; 
     // 2. B LTU DX dependence; from A or B
-    wire B_LTU_dependence;
     assign B_LTU_dependence = (X_insn_LDR_B & (((D_Rs_A == X_Rd_B) & R1RE_A) | ((D_Rt_A == X_Rd_B) & !D_insn_STR_A &R2RE_A)) )
                             | ((X_insn_LDR_B & (((D_Rs_B == X_Rd_B) & R1RE_B) | ((D_Rt_B == X_Rd_B) & !D_insn_STR_B &R2RE_B)) ) 
                             & (X_Rd_B != D_Rd_B))// Nullified;  
-                            & (D_Rd_A != D_Rt_A) & (X_Rd_A != D_Rs_A);               
+                            & (D_Rd_A != D_Rt_A) & (X_Rd_A != D_Rs_A);
     // 3. A,B Decode LTU dependence (B is the insn following A, and requires data from A)
-    wire AB_LTU_dependence;
     assign AB_LTU_dependence = ((D_Rs_B == D_Rd_A) & R1RE_B & D_Ctrl_RF_WE_A) | ((D_Rt_B == D_Rd_A) & R2RE_B & D_Ctrl_RF_WE_A);
-    // 4. Structural Hazard 
-    wire AB_Structural_hazard;
+    // 4. Structural Hazard   
     assign AB_Structural_hazard = (D_insn_LDR_A | D_insn_STR_A) & (D_insn_LDR_B | D_insn_STR_B);                 
     
-    wire A_Load_to_Branch;
+    // Load-to-branch cases //
     assign A_Load_to_Branch = D_insn_BR_A & X_insn_LDR_A;
-    wire B_Load_to_Branch;
-    assign B_Load_to_Branch = D_insn_BR_B & X_insn_LDR_B;   
-   // STALL LOGIC
-    wire [2:0] Stall_bits_A;
-    wire [2:0] Stall_bits_B;
+    assign B_Load_to_Branch = D_insn_BR_B & X_insn_LDR_B; 
 
+
+
+    // ************ pipeline switching ************ //
+    wire Pipe_Switch;
+    assign Pipe_Switch = ~Stall_A & ((AB_LTU_dependence | AB_Structural_hazard) | (B_LTU_dependence & ~AB_LTU_dependence & ~AB_Structural_hazard) | B_Load_to_Branch);
+
+
+ 
+    // ************ Stall Registers ************ //
+    wire [1:0]  D_Stall_out_bits_A, D_Stall_in_bits_A, X_Stall_in_bits_A, X_Stall_out_bits_A,
+                M_Stall_in_bits_A, M_Stall_out_bits_A, W_Stall_in_bits_A, W_Stall_out_bits_A;
+    wire [1:0]  D_Stall_in_bits_B, D_Stall_out_bits_B, X_Stall_in_bits_B, X_Stall_out_bits_B,   
+                M_Stall_in_bits_B, M_Stall_out_bits_B, W_Stall_in_bits_B, W_Stall_out_bits_B;
+    wire [2:0] Stall_bits_A, Stall_bits_B;
+    wire Stall_A, Stall_B;
+
+    Nbit_reg #(2, 2'b10) D_Stall_Reg_A(.in(D_Stall_in_bits_A), .out( D_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) X_Stall_Reg_A(.in(X_Stall_in_bits_A), .out( X_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) M_Stall_Reg_A(.in(M_Stall_in_bits_A), .out( M_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) W_Stall_Reg_A(.in(W_Stall_in_bits_A), .out( W_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+ 
+    Nbit_reg #(2, 2'b10) D_Stall_Reg_B(.in(D_Stall_in_bits_B), .out( D_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) X_Stall_Reg_B(.in(X_Stall_in_bits_B), .out( X_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) M_Stall_Reg_B(.in(M_Stall_in_bits_B), .out( M_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) W_Stall_Reg_B(.in(W_Stall_in_bits_B), .out( W_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+
+    // Stall logic classifier //
     assign Stall_bits_A =   (A_LTU_dependence) ? 2'b11:
                             (A_Load_to_Branch) ? 2'b10:
                             2'b00 ;
@@ -821,76 +833,32 @@ module lc4_processor(input wire         clk,             // main clock
                             (AB_LTU_dependence | AB_Structural_hazard) ? 2'b01:
                             (B_Load_to_Branch) ? 2'b10:
                             2'b00 ;
-    wire Stall_A;
-    wire Stall_B;
+    
     assign Stall_A =    (Stall_bits_A == 2'b11) | (Stall_bits_A == 2'b01) | A_Load_to_Branch;
     assign Stall_B =    (Stall_bits_B == 2'b11) | (Stall_bits_B == 2'b01) | A_Load_to_Branch | B_Load_to_Branch;
 
 
-    // pipeline switching
-    wire Pipe_Switch;
-    assign Pipe_Switch = ~Stall_A & ((AB_LTU_dependence | AB_Structural_hazard) | (B_LTU_dependence & ~AB_LTU_dependence & ~AB_Structural_hazard) | B_Load_to_Branch);
-
-    wire D_Flush_A;
-    assign D_Flush_A = X_Ctrl_PC_JMP_A;
-    wire D_Flush_B;
-    assign D_Flush_B = X_Ctrl_PC_JMP_B;
-
-    // test_stall
-    wire [1:0] D_Stall_out_bits_A;
-    wire [1:0] D_Stall_in_bits_A;
-    wire [1:0] X_Stall_in_bits_A;
-    wire [1:0] X_Stall_out_bits_A;
-    wire [1:0] M_Stall_in_bits_A;
-    wire [1:0] M_Stall_out_bits_A;   
-    wire [1:0] W_Stall_in_bits_A;
-    wire [1:0] W_Stall_out_bits_A;
-
-    assign D_Stall_in_bits_A =  Stall_bits_A;
-
-    Nbit_reg #(2, 2'b10) D_Stall_Reg_A(.in(D_Stall_in_bits_A), .out( D_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) X_Stall_Reg_A(.in(X_Stall_in_bits_A), .out( X_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    // assign X_Stall_in_bits_A = (X_Ctrl_PC_JMP_A) ? 2'b10 :
-    //                       (Stall_load_to_Use_A | Stall_Load_to_Branch_A) ? 2'b11:
-    //                      D_Stall_out_bits_A;
     assign X_Stall_in_bits_A = (D_INSN_A != 16'h0000) ? Stall_bits_A : 2'b10;
-    Nbit_reg #(2, 2'b10) M_Stall_Reg_A(.in(M_Stall_in_bits_A), .out( M_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
     assign M_Stall_in_bits_A =  X_Stall_out_bits_A;   
-    Nbit_reg #(2, 2'b10) W_Stall_Reg_A(.in(W_Stall_in_bits_A), .out( W_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
     assign W_Stall_in_bits_A = M_Stall_out_bits_A;   
-    assign test_stall_A = W_Stall_out_bits_A; 
-
-    wire [1:0] D_Stall_out_bits_B;
-    wire [1:0] D_Stall_in_bits_B;
-    wire [1:0] X_Stall_in_bits_B;
-    wire [1:0] X_Stall_out_bits_B;
-    wire [1:0] M_Stall_in_bits_B;
-    wire [1:0] M_Stall_out_bits_B;   
-    wire [1:0] W_Stall_in_bits_B;
-    wire [1:0] W_Stall_out_bits_B;
+    assign test_stall_A = W_Stall_out_bits_A;
+    assign D_Stall_in_bits_A =  Stall_bits_A; 
 
     assign D_Stall_in_bits_B =  Stall_bits_B;
-
-    Nbit_reg #(2, 2'b10) D_Stall_Reg_B(.in(D_Stall_in_bits_B), .out( D_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) X_Stall_Reg_B(.in(X_Stall_in_bits_B), .out( X_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) M_Stall_Reg_B(.in(M_Stall_in_bits_B), .out( M_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) W_Stall_Reg_B(.in(W_Stall_in_bits_B), .out( W_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-
     assign X_Stall_in_bits_B = (D_INSN_B != 16'h0000) ? Stall_bits_B : 2'b10;
     assign M_Stall_in_bits_B =  X_Stall_out_bits_B;   
     assign W_Stall_in_bits_B = M_Stall_out_bits_B;   
     assign test_stall_B = W_Stall_out_bits_B; 
 
-    // Flush logic
-    // D,X flush happens when Branch mis prediction OR pipe switch
-    wire X_Flush_A;
-    wire M_Flush_A;
-    wire W_Flush_A;
-    assign X_Flush_A = Stall_A | X_Ctrl_PC_JMP_A;
 
-    wire X_Flush_B;
-    wire M_Flush_B;
-    wire W_Flush_B;
+    // ************ Flush Logics ************ //
+    // Flush in D/X happens when mis-prediction/pipe switch occurs
+    wire D_Flush_A, X_Flush_A, M_Flush_A, W_Flush_A;
+    wire D_Flush_B, X_Flush_B, M_Flush_B, W_Flush_B;
+
+    assign D_Flush_A = X_Ctrl_PC_JMP_A;
+    assign D_Flush_B = X_Ctrl_PC_JMP_B;
+    assign X_Flush_A = Stall_A | X_Ctrl_PC_JMP_A;
     assign X_Flush_B = Stall_B | X_Ctrl_PC_JMP_B | Pipe_Switch;
 
 
