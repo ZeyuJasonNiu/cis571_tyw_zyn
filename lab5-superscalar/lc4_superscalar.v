@@ -689,7 +689,6 @@ module lc4_processor(input wire         clk,             // main clock
 
     Nbit_reg #(1, 1'b0) W_CTRL_W_R7_Reg_B(.in(M_Ctrl_W_R7_B), .out( W_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     Nbit_reg #(1, 1'b0) W_CTRL_RF_WE_Reg_B(.in(M_Ctrl_RF_WE_B), .out( W_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
     Nbit_reg #(3, 3'b000) W_Ctrl_NZP_Reg_B(.in(M_Ctrl_NZP_B), .out( W_Ctrl_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     Nbit_reg #(3, 3'b000) W_Rd_Reg_B(.in(M_Rd_B), .out( W_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     wire W_Ctrl_Update_NZP_B;
@@ -699,53 +698,51 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign W_RF_IN_data_B = (W_insn_LDR_B) ? W_Mem_B : W_ALU_B;
 
-    // NZP register
 
-    // A
+
+    //************ NZP Register and NZP update ************//
     // Ctrl_NZP are the new nzp bits
-    wire [2:0] Ctrl_NZP_A;
-    wire [2:0] M_Ctrl_NZP_A;
-    wire [2:0] W_Ctrl_NZP_A;   
-    wire [2:0] NZP_A;
-    wire X_NZP_WE_A; 
-    assign X_NZP_WE_A = X_Ctrl_Update_NZP_A |  M_Stall_A;
-    Nbit_reg #(3, 3'b000) nzp_reg_A (.in(Ctrl_NZP_A), .out(NZP_A), .clk(clk), .we(X_NZP_WE_A), .gwe(gwe), .rst(rst));
+    wire [2:0] Ctrl_NZP_A, M_Ctrl_NZP_A, W_Ctrl_NZP_A, NZP_A;    
+    wire [2:0] Ctrl_NZP_B, M_Ctrl_NZP_B, W_Ctrl_NZP_B, NZP_B;
+
+    wire X_NZP_WE_A;
+    wire X_NZP_WE_B; 
 
     wire signed [15:0] NZP_Data_A;
-    assign NZP_Data_A = M_Stall_A ? O_Mem : 
-                    X_Ctrl_W_R7_A ? X_PC_ADD_ONE_A : O_ALU_A;
+    wire signed [15:0] NZP_Data_B;
+
+    Nbit_reg #(3, 3'b000) nzp_reg_A (.in(Ctrl_NZP_A), .out(NZP_A), .clk(clk), .we(X_NZP_WE_A), .gwe(gwe), .rst(rst));
+    Nbit_reg #(3, 3'b000) nzp_reg_B (.in(Ctrl_NZP_B), .out(NZP_B), .clk(clk), .we(X_NZP_WE_B), .gwe(gwe), .rst(rst));
+
+    assign X_NZP_WE_A = X_Ctrl_Update_NZP_A |  M_Stall_A;
     assign Ctrl_NZP_A[2] = (NZP_Data_A[15] == 1'b1)? 1'b1 : 1'b0; // N
     assign Ctrl_NZP_A[1] = (NZP_Data_A == 16'h0000)? 1'b1 : 1'b0; // Z
     assign Ctrl_NZP_A[0] = (NZP_Data_A > $signed(16'h0000))? 1'b1 : 1'b0;   // P
+    assign NZP_Data_A = M_Stall_A ? O_Mem : 
+                    X_Ctrl_W_R7_A ? X_PC_ADD_ONE_A : O_ALU_A;
 
-   // B
-    // Ctrl_NZP are the new nzp bits
-    wire [2:0] Ctrl_NZP_B;
-    wire [2:0] M_Ctrl_NZP_B;
-    wire [2:0] W_Ctrl_NZP_B;   
-    wire [2:0] NZP_B;
-    wire X_NZP_WE_B; 
     assign X_NZP_WE_B = X_Ctrl_Update_NZP_B |  M_Stall_B;
-    Nbit_reg #(3, 3'b000) nzp_reg_B (.in(Ctrl_NZP_B), .out(NZP_B), .clk(clk), .we(X_NZP_WE_B), .gwe(gwe), .rst(rst));
-
-    wire signed [15:0] NZP_Data_B;
-    assign NZP_Data_B = M_Stall_B ? O_Mem : 
-                    X_Ctrl_W_R7_B ? X_PC_ADD_ONE_B : O_ALU_B;
     assign Ctrl_NZP_B[2] = (NZP_Data_B[15] == 1'b1)? 1'b1 : 1'b0; // N
     assign Ctrl_NZP_B[1] = (NZP_Data_B == 16'h0000)? 1'b1 : 1'b0; // Z
     assign Ctrl_NZP_B[0] = (NZP_Data_B > $signed(16'h0000))? 1'b1 : 1'b0;   // P
+    assign NZP_Data_B = M_Stall_B ? O_Mem : 
+                    X_Ctrl_W_R7_B ? X_PC_ADD_ONE_B : O_ALU_B;
 
-    // Used to update M_Ctrl_NZP based on Mem output
-
+    // updating M_Ctrl_NZP based on Mem output
     wire signed [15:0] mem_NZP_Data;
     assign mem_NZP_Data = O_Mem;
     assign Mem_NZP_Update[2] = (mem_NZP_Data[15] == 1'b1)? 1'b1 : 1'b0; // N
     assign Mem_NZP_Update[1] = (mem_NZP_Data == 16'h0000)? 1'b1 : 1'b0; // Z
     assign Mem_NZP_Update[0] = (mem_NZP_Data > $signed(16'h0000))? 1'b1 : 1'b0;   // P   
 
-    // sub op for branch
-    wire[2:0] sub_op_A;
+
+
+    //************ Branch Operation Classifier ************//
+    wire[2:0] sub_op_A, sub_op_B;
+
     assign sub_op_A = X_INSN_A[11:9];
+    assign sub_op_B = X_INSN_B[11:9];
+
     wire sub_op_NOP_A = (sub_op_A == 3'b000);
     wire sub_op_BRp_A = (sub_op_A == 3'b001);
     wire sub_op_BRz_A = (sub_op_A == 3'b010);
@@ -753,14 +750,8 @@ module lc4_processor(input wire         clk,             // main clock
     wire sub_op_BRn_A = (sub_op_A == 3'b100);
     wire sub_op_BRnp_A = (sub_op_A == 3'b101);
     wire sub_op_BRnz_A = (sub_op_A == 3'b110);
-    wire sub_op_BRnzp_A = (sub_op_A == 3'b111);  
+    wire sub_op_BRnzp_A = (sub_op_A == 3'b111);
 
-    assign X_Ctrl_BR_JMP_A = (NZP_A[0] & sub_op_BRp_A) | (NZP_A[1] & sub_op_BRz_A) | (NZP_A[2] & sub_op_BRn_A) | 
-                            ((NZP_A[0]|NZP_A[1]) & sub_op_BRzp_A) | ((NZP_A[0]|NZP_A[2]) & sub_op_BRnp_A) | ((NZP_A[1]|NZP_A[2]) & sub_op_BRnz_A) | ((NZP_A[1]|NZP_A[0]|NZP_A[2]) & sub_op_BRnzp_A);
-    assign X_Ctrl_PC_JMP_A = (X_insn_BR_A & X_Ctrl_BR_JMP_A) | X_Ctrl_Control_insn_A;
-
-    wire[2:0] sub_op_B;
-    assign sub_op_B = X_INSN_B[11:9];
     wire sub_op_NOP_B = (sub_op_B == 3'b000);
     wire sub_op_BRp_B = (sub_op_B == 3'b001);
     wire sub_op_BRz_B = (sub_op_B == 3'b010);
@@ -768,7 +759,11 @@ module lc4_processor(input wire         clk,             // main clock
     wire sub_op_BRn_B = (sub_op_B == 3'b100);
     wire sub_op_BRnp_B = (sub_op_B == 3'b101);
     wire sub_op_BRnz_B = (sub_op_B == 3'b110);
-    wire sub_op_BRnzp_B = (sub_op_B == 3'b111);  
+    wire sub_op_BRnzp_B = (sub_op_B == 3'b111); 
+
+    assign X_Ctrl_BR_JMP_A = (NZP_A[0] & sub_op_BRp_A) | (NZP_A[1] & sub_op_BRz_A) | (NZP_A[2] & sub_op_BRn_A) | 
+                            ((NZP_A[0]|NZP_A[1]) & sub_op_BRzp_A) | ((NZP_A[0]|NZP_A[2]) & sub_op_BRnp_A) | ((NZP_A[1]|NZP_A[2]) & sub_op_BRnz_A) | ((NZP_A[1]|NZP_A[0]|NZP_A[2]) & sub_op_BRnzp_A);
+    assign X_Ctrl_PC_JMP_A = (X_insn_BR_A & X_Ctrl_BR_JMP_A) | X_Ctrl_Control_insn_A;
 
     assign X_Ctrl_BR_JMP_B = (NZP_B[0] & sub_op_BRp_B) | (NZP_B[1] & sub_op_BRz_B) | (NZP_B[2] & sub_op_BRn_B) | 
                             ((NZP_B[0]|NZP_B[1]) & sub_op_BRzp_B) | ((NZP_B[0]|NZP_B[2]) & sub_op_BRnp_B) | ((NZP_B[1]|NZP_B[2]) & sub_op_BRnz_B) | ((NZP_B[1]|NZP_B[0]|NZP_B[2]) & sub_op_BRnzp_B);
