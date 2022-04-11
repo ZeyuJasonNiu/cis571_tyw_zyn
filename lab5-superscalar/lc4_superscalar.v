@@ -79,7 +79,8 @@ module lc4_processor(input wire         clk,             // main clock
                             16'h0000;     
     assign test_dmem_data_B = (W_insn_STR_B) ?  W_dmem_towrite_B: 
                             (W_insn_LDR_B) ? W_Mem_B:
-                            16'h0000;                               
+                            16'h0000;  
+
     // Define Control Signals
     wire D_Ctrl_W_R7_A, X_Ctrl_W_R7_A, M_Ctrl_W_R7_A, W_Ctrl_W_R7_A;
     wire D_Ctrl_W_R7_B, X_Ctrl_W_R7_B, M_Ctrl_W_R7_B, W_Ctrl_W_R7_B;
@@ -107,7 +108,7 @@ module lc4_processor(input wire         clk,             // main clock
    
 
 
-    // X register wires
+    // wire for X register wires
     wire X_R1RE_A;
     wire X_R2RE_A;
     wire X_R1RE_B;
@@ -134,7 +135,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire X_Ctrl_Control_insn_B;
 
 
-    // M register Wires
+    // wire for M register Wires
     // A
     wire [15:0] M_PC_A;
     wire [15:0] M_ALU_A;
@@ -169,7 +170,12 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0]  M_Ctrl_NZP_out_B;
 
 
-    // W registers
+    // wire for W registers
+    assign W_Flush_A = 1'b0;
+    assign W_Flush_B = 1'b0;
+
+    assign W_RF_IN_data_A = (W_insn_LDR_A) ? W_Mem_A : W_ALU_A;
+    assign W_RF_IN_data_B = (W_insn_LDR_B) ? W_Mem_B : W_ALU_B;
     wire [15:0] O_Mem;
     assign O_Mem = i_cur_dmem_data;
     //A
@@ -247,6 +253,61 @@ module lc4_processor(input wire         clk,             // main clock
     assign F_INSN_B = (Pipe_Switch) ? i_cur_insn_A :
                         (Stall_A) ? D_INSN_B : 
                         i_cur_insn_B;
+
+
+    
+    // ************ Stall Registers ************ //
+    wire [1:0]  D_Stall_out_bits_A, D_Stall_in_bits_A, X_Stall_in_bits_A, X_Stall_out_bits_A,
+                M_Stall_in_bits_A, M_Stall_out_bits_A, W_Stall_in_bits_A, W_Stall_out_bits_A;
+    wire [1:0]  D_Stall_in_bits_B, D_Stall_out_bits_B, X_Stall_in_bits_B, X_Stall_out_bits_B,   
+                M_Stall_in_bits_B, M_Stall_out_bits_B, W_Stall_in_bits_B, W_Stall_out_bits_B;
+    wire [2:0] Stall_bits_A, Stall_bits_B;
+    wire Stall_A, Stall_B;
+
+    Nbit_reg #(2, 2'b10) D_Stall_Reg_A(.in(D_Stall_in_bits_A), .out( D_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) X_Stall_Reg_A(.in(X_Stall_in_bits_A), .out( X_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) M_Stall_Reg_A(.in(M_Stall_in_bits_A), .out( M_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) W_Stall_Reg_A(.in(W_Stall_in_bits_A), .out( W_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+ 
+    Nbit_reg #(2, 2'b10) D_Stall_Reg_B(.in(D_Stall_in_bits_B), .out( D_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) X_Stall_Reg_B(.in(X_Stall_in_bits_B), .out( X_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) M_Stall_Reg_B(.in(M_Stall_in_bits_B), .out( M_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+    Nbit_reg #(2, 2'b10) W_Stall_Reg_B(.in(W_Stall_in_bits_B), .out( W_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
+
+    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_A(.in(Stall_A), .out( M_Stall_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_B(.in(Stall_B), .out( M_Stall_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+
+    // Stall logic classifier //
+    assign Stall_bits_A =   (A_LTU_dependence) ? 2'b11:
+                            (A_Load_to_Branch) ? 2'b10:
+                            2'b00 ;
+    assign Stall_bits_B =   (A_LTU_dependence) ? 2'b01:
+                            (AB_LTU_dependence | AB_Structural_hazard) ? 2'b01:
+                            (B_Load_to_Branch) ? 2'b10:
+                            2'b00 ;
+    
+    assign Stall_A =    (Stall_bits_A == 2'b11) | (Stall_bits_A == 2'b01) | A_Load_to_Branch;
+    assign Stall_B =    (Stall_bits_B == 2'b11) | (Stall_bits_B == 2'b01) | A_Load_to_Branch | B_Load_to_Branch;
+
+
+    assign X_Stall_in_bits_A = (D_INSN_A != 16'h0000) ? Stall_bits_A : 2'b10;
+    assign M_Stall_in_bits_A =  X_Stall_out_bits_A;   
+    assign W_Stall_in_bits_A = M_Stall_out_bits_A;   
+    assign test_stall_A = W_Stall_out_bits_A;
+    assign D_Stall_in_bits_A =  Stall_bits_A; 
+
+    assign D_Stall_in_bits_B =  Stall_bits_B;
+    assign X_Stall_in_bits_B = (D_INSN_B != 16'h0000) ? Stall_bits_B : 2'b10;
+    assign M_Stall_in_bits_B =  X_Stall_out_bits_B;   
+    assign W_Stall_in_bits_B = M_Stall_out_bits_B;   
+    assign test_stall_B = W_Stall_out_bits_B;
+
+    // ~~~~ pipeline switching ~~~~ //
+    wire    Pipe_Switch;
+    assign  Pipe_Switch =     ~Stall_A & ((AB_LTU_dependence | AB_Structural_hazard) 
+                            | (B_LTU_dependence & ~AB_LTU_dependence & ~AB_Structural_hazard) 
+                            | B_Load_to_Branch); 
 
 
 
@@ -327,6 +388,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b000) M_Rs_Reg_A(.in(X_Rs_A), .out( M_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
     Nbit_reg #(3, 3'b000) M_Rt_Reg_A(.in(X_Rt_A), .out( M_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
     Nbit_reg #(3, 3'b000) M_Rd_Reg_A(.in(X_Rd_A), .out( M_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(3, 3'b000) W_Rd_Reg_A(.in(M_Rd_A), .out( W_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
 
 
     Nbit_reg #(3, 3'b000) X_Rs_Reg_B(.in(D_Rs_B), .out( X_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
@@ -336,7 +398,8 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b000) M_Rs_Reg_B(.in(X_Rs_B), .out( M_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(3, 3'b000) M_Rt_Reg_B(.in(X_Rt_B), .out( M_Rt_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(3, 3'b000) M_Rd_Reg_B(.in(X_Rd_B), .out( M_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
+    Nbit_reg #(3, 3'b000) W_Rd_Reg_B(.in(M_Rd_B), .out( W_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+   
 
 
     // ************ LDR/STR registers ************ // 
@@ -382,8 +445,19 @@ module lc4_processor(input wire         clk,             // main clock
 
 
 
+    // ************ ALU and insn registers ************ //
+    Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(O_ALU_A), .out( M_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(M_ALU_A), .out( W_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) W_ALU_Reg_B(.in(M_ALU_B), .out( W_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(O_ALU_B), .out( M_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
-   
+    Nbit_reg #(1, 1'b0) X_insn_BR_Reg_A(.in(D_insn_BR_A), .out( X_insn_BR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_insn_BR_Reg_B(.in(D_insn_BR_B), .out( X_insn_BR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+
+    Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+
+
     //************ Decoders ************//
     wire [2:0] Rd_A, Rd_B; // raw rd output from decoder; 
     wire [2:0] D_Rd_A, D_Rd_B; // valid only when RF_WE is enabled; to avoid false WX by pass
@@ -464,18 +538,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign I_RF_data_A = W_Ctrl_W_R7_A ? W_PC_ADD_ONE_A : W_RF_IN_data_A;
     assign I_RF_data_B = W_Ctrl_W_R7_B ? W_PC_ADD_ONE_B : W_RF_IN_data_B;
 
-
-
-    // X registers
-
-    
-    
-
-    Nbit_reg #(1, 1'b0) X_insn_BR_Reg_A(.in(D_insn_BR_A), .out( X_insn_BR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_insn_BR_Reg_B(.in(D_insn_BR_B), .out( X_insn_BR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
-    
 
 
     //************ Bypass Classifiers (WMX) ************//
@@ -570,26 +632,13 @@ module lc4_processor(input wire         clk,             // main clock
 
 
 
-
-    // M register
-    // A
-
     assign M_Flush_A = 1'b0;
-    Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(O_ALU_A), .out( M_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-       
-
-    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_A(.in(Stall_A), .out( M_Stall_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_B(.in(Stall_B), .out( M_Stall_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
-    assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A;
-
     assign M_Flush_B = 1'b0;
-    Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(O_ALU_B), .out( M_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A;        
+    assign M_Ctrl_NZP_B = (M_insn_LDR_B)? Mem_NZP_Update : M_Ctrl_NZP_out_B;
+
 
     
-    
-        
-    assign M_Ctrl_NZP_B = (M_insn_LDR_B)? Mem_NZP_Update : M_Ctrl_NZP_out_B;
     
 
     // memory
@@ -640,32 +689,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign o_dmem_towrite = (M_insn_STR_A) ? o_dmem_towrite_A :
                             (M_insn_STR_B) ? o_dmem_towrite_B :
                             16'h0000;
-
-
-
-
-    // W registers
-
-    assign W_Flush_A = 1'b0;
-    Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(M_ALU_A), .out( W_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    
-    
-
-    Nbit_reg #(3, 3'b000) W_Rd_Reg_A(.in(M_Rd_A), .out( W_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-   
-    assign W_RF_IN_data_A = (W_insn_LDR_A) ? W_Mem_A : W_ALU_A;
-
-
-    assign W_Flush_B = 1'b0;
-    Nbit_reg #(16, 16'h0000) W_BLU_Reg_B(.in(M_ALU_B), .out( W_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-     
-    
-    
-    
-    Nbit_reg #(3, 3'b000) W_Rd_Reg_B(.in(M_Rd_B), .out( W_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
-    
-    assign W_RF_IN_data_B = (W_insn_LDR_B) ? W_Mem_B : W_ALU_B;
 
 
 
@@ -758,61 +781,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign AB_LTU_dependence = ((D_Rs_B == D_Rd_A) & R1RE_B & D_Ctrl_RF_WE_A) | ((D_Rt_B == D_Rd_A) & R2RE_B & D_Ctrl_RF_WE_A);
     // 4. Structural Hazard   
     assign AB_Structural_hazard = (D_insn_LDR_A | D_insn_STR_A) & (D_insn_LDR_B | D_insn_STR_B);                 
-    
     // Load-to-branch cases //
     assign A_Load_to_Branch = D_insn_BR_A & X_insn_LDR_A;
     assign B_Load_to_Branch = D_insn_BR_B & X_insn_LDR_B; 
-
-
-
-    // ************ pipeline switching ************ //
-    wire Pipe_Switch;
-    assign Pipe_Switch = ~Stall_A & ((AB_LTU_dependence | AB_Structural_hazard) | (B_LTU_dependence & ~AB_LTU_dependence & ~AB_Structural_hazard) | B_Load_to_Branch);
-
-
- 
-    // ************ Stall Registers ************ //
-    wire [1:0]  D_Stall_out_bits_A, D_Stall_in_bits_A, X_Stall_in_bits_A, X_Stall_out_bits_A,
-                M_Stall_in_bits_A, M_Stall_out_bits_A, W_Stall_in_bits_A, W_Stall_out_bits_A;
-    wire [1:0]  D_Stall_in_bits_B, D_Stall_out_bits_B, X_Stall_in_bits_B, X_Stall_out_bits_B,   
-                M_Stall_in_bits_B, M_Stall_out_bits_B, W_Stall_in_bits_B, W_Stall_out_bits_B;
-    wire [2:0] Stall_bits_A, Stall_bits_B;
-    wire Stall_A, Stall_B;
-
-    Nbit_reg #(2, 2'b10) D_Stall_Reg_A(.in(D_Stall_in_bits_A), .out( D_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) X_Stall_Reg_A(.in(X_Stall_in_bits_A), .out( X_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) M_Stall_Reg_A(.in(M_Stall_in_bits_A), .out( M_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) W_Stall_Reg_A(.in(W_Stall_in_bits_A), .out( W_Stall_out_bits_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
- 
-    Nbit_reg #(2, 2'b10) D_Stall_Reg_B(.in(D_Stall_in_bits_B), .out( D_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) X_Stall_Reg_B(.in(X_Stall_in_bits_B), .out( X_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) M_Stall_Reg_B(.in(M_Stall_in_bits_B), .out( M_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-    Nbit_reg #(2, 2'b10) W_Stall_Reg_B(.in(W_Stall_in_bits_B), .out( W_Stall_out_bits_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( rst ));
-
-    // Stall logic classifier //
-    assign Stall_bits_A =   (A_LTU_dependence) ? 2'b11:
-                            (A_Load_to_Branch) ? 2'b10:
-                            2'b00 ;
-    assign Stall_bits_B =   (A_LTU_dependence) ? 2'b01:
-                            (AB_LTU_dependence | AB_Structural_hazard) ? 2'b01:
-                            (B_Load_to_Branch) ? 2'b10:
-                            2'b00 ;
-    
-    assign Stall_A =    (Stall_bits_A == 2'b11) | (Stall_bits_A == 2'b01) | A_Load_to_Branch;
-    assign Stall_B =    (Stall_bits_B == 2'b11) | (Stall_bits_B == 2'b01) | A_Load_to_Branch | B_Load_to_Branch;
-
-
-    assign X_Stall_in_bits_A = (D_INSN_A != 16'h0000) ? Stall_bits_A : 2'b10;
-    assign M_Stall_in_bits_A =  X_Stall_out_bits_A;   
-    assign W_Stall_in_bits_A = M_Stall_out_bits_A;   
-    assign test_stall_A = W_Stall_out_bits_A;
-    assign D_Stall_in_bits_A =  Stall_bits_A; 
-
-    assign D_Stall_in_bits_B =  Stall_bits_B;
-    assign X_Stall_in_bits_B = (D_INSN_B != 16'h0000) ? Stall_bits_B : 2'b10;
-    assign M_Stall_in_bits_B =  X_Stall_out_bits_B;   
-    assign W_Stall_in_bits_B = M_Stall_out_bits_B;   
-    assign test_stall_B = W_Stall_out_bits_B; 
 
 
     // ************ Flush Logics ************ //
