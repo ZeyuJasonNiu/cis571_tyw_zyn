@@ -186,25 +186,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire W_Ctrl_Update_NZP_B;
 
 
-    // PC
-    // pc wires attached to the PC register's ports
-    wire [15:0]   pc;      // Current program counter (read out from pc_reg)
-    wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
-
-
-    wire [15:0] D_PC_A, D_I_PC_A;
-    wire [15:0] D_PC_B, D_I_PC_B;
-
-    // PC adder
-    wire [15:0] PC_ADD_ONE_A, D_PC_ADD_ONE_A;
-    wire [15:0] PC_ADD_ONE_B, D_PC_ADD_ONE_B;
-    cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
-    cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
-
-
-
-    // ************ PC registers ************ //
-    
+    // ************ PC registers ************ //  
     // Program counter register, starts at 8200h at bootup
     wire [15:0]   pc;                                       // Current program counter (read out from pc_reg)
     wire [15:0]   next_pc;                                  // Next program counter (you compute this and feed it into next_pc)
