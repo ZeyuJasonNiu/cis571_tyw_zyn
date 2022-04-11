@@ -520,7 +520,7 @@ module lc4_processor(input wire         clk,             // main clock
     */
    always @(posedge gwe) begin
        if ($time >= 300 && $time <=1600) begin
-        $display("\n ******************* New Cycle ******************* ");
+        $display("\n\n ******************* New Cycle ******************* ");
 
         $display("Time = %d, test_stall_A = %h, test_stall_B = %h, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
@@ -533,7 +533,7 @@ module lc4_processor(input wire         clk,             // main clock
         $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
         $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
         $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
-        $display("\n~~~~~~~~~~~~~~~~~~~~~Errors From Test Bench~~~~~~~~~~~~~~~~~~~~ \n\n");
+        $display("~~~~~~~~~~~~~~~~~~~~~Errors From Test Bench~~~~~~~~~~~~~~~~~~~~ \n");
        end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
