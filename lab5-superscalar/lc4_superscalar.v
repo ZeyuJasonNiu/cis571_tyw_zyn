@@ -194,13 +194,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0]   pc;      // Current program counter (read out from pc_reg)
     wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
 
-    // WHATS NEXT PC
-    assign next_pc = Stall_A ? pc :
-                    Pipe_Switch ? PC_ADD_ONE_A :
-                    X_Ctrl_PC_JMP_A ? O_ALU_A :
-                    X_Ctrl_PC_JMP_B ? O_ALU_B : 
-                    PC_ADD_ONE_B ;
-
     assign o_cur_pc = pc;
     wire [15:0] D_PC_A;
     wire [15:0] D_I_PC_A;
@@ -215,22 +208,6 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
     cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
 
-    // D Register
-
-    wire [15:0] F_INSN_A;
-    wire [15:0] F_INSN_B;
-
-    // pipe line switching
-    assign F_INSN_A = (Pipe_Switch) ? D_INSN_B :
-                        (Stall_A) ? D_INSN_A : i_cur_insn_A;
-    assign F_INSN_B = (Pipe_Switch) ? i_cur_insn_A :
-                        (Stall_A) ? D_INSN_B : 
-                        i_cur_insn_B;
-
-    wire [15:0] D_INSN_A;
-    //wire [15:0] D_I_INSN_A;
-    wire [15:0] D_INSN_B;
-    //wire [15:0] D_I_INSN_B;
 
 
     // ************ PC registers ************ //
@@ -249,10 +226,18 @@ module lc4_processor(input wire         clk,             // main clock
         
     assign D_I_PC_A = (Pipe_Switch) ? D_PC_B : (Stall_A) ? D_PC_A : pc;
     assign D_I_PC_B = (Pipe_Switch) ? pc :(Stall_B) ? D_PC_B : PC_ADD_ONE_A;
+    // Calculates next PC Value
+    assign next_pc = Stall_A ? pc :
+                    Pipe_Switch ? PC_ADD_ONE_A :
+                    X_Ctrl_PC_JMP_A ? O_ALU_A :
+                    X_Ctrl_PC_JMP_B ? O_ALU_B : 
+                    PC_ADD_ONE_B ;
 
 
 
-    // ************ Instruction registers ************ //                    
+    // ************ Instruction registers ************ // 
+    wire [15:0] F_INSN_A, F_INSN_B; 
+    wire [15:0] D_INSN_A, D_INSN_B;                  
     Nbit_reg #(16, 16'h0000) D_insn_Reg_A(.in(F_INSN_A), .out( D_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
     Nbit_reg #(16, 16'h0000) X_insn_Reg_A(.in(D_INSN_A), .out( X_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) M_insn_Reg_A(.in(X_INSN_A), .out( M_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
@@ -262,6 +247,14 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) X_insn_Reg_B(.in(D_INSN_B), .out( X_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     Nbit_reg #(16, 16'h0000) M_insn_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(16, 16'h0000) W_insn_Reg_B(.in(M_INSN_B), .out( W_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+
+    // pipe line switching
+    assign F_INSN_A = (Pipe_Switch) ? D_INSN_B :
+                        (Stall_A) ? D_INSN_A : i_cur_insn_A;
+    assign F_INSN_B = (Pipe_Switch) ? i_cur_insn_A :
+                        (Stall_A) ? D_INSN_B : 
+                        i_cur_insn_B;
 
 
 
