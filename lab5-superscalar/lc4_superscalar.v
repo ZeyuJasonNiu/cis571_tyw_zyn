@@ -270,7 +270,119 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) X_R2_Reg_B(.in(D_O_RF_R2_B), .out( X_R2_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     Nbit_reg #(16, 16'h0000) M_R2_Reg_B(.in(ALU_in2_B), .out( M_R2_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
-      
+
+    // ************ R1/R2_RE registers ************ //  
+    Nbit_reg #(1, 1'b0) X_R1RE_Reg_A(.in(R1RE_A), .out( X_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_R2RE_Reg_A(.in(R2RE_A), .out( X_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) M_R1RE_Reg_A(.in(X_R1RE_A), .out( M_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_R2RE_Reg_A(.in(X_R2RE_A), .out( M_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    
+
+    Nbit_reg #(1, 1'b0) X_R1RE_Reg_B(.in(R1RE_B), .out( X_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) X_R2RE_Reg_B(.in(R2RE_B), .out( X_R2RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) M_R1RE_Reg_B(.in(X_R1RE_B), .out( M_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(1, 1'b0) M_R2RE_Reg_B(.in(X_R2RE_B), .out( M_R2RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+
+
+    // ************ Control-related registers ************ // 
+    Nbit_reg #(1, 1'b0) X_CTRL_W_R7_Reg_A(.in(D_Ctrl_W_R7_A), .out( X_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_RF_WE_Reg_A(.in(D_Ctrl_RF_WE_A), .out( X_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_Control_Reg_A(.in(D_Ctrl_Control_insn_A), .out( X_Ctrl_Control_insn_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_Update_NZP_Reg_A(.in(D_Ctrl_Update_NZP_A), .out( X_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    
+    Nbit_reg #(1, 1'b0) M_CTRL_Update_NZP_Reg_A(.in(X_Ctrl_Update_NZP_A), .out( M_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(3, 3'b000) M_Ctrl_NZP_Reg_A(.in(Ctrl_NZP_A), .out( M_Ctrl_NZP_out_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_CTRL_W_R7_Reg_A(.in(X_Ctrl_W_R7_A), .out( M_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_CTRL_RF_WE_Reg_A(.in(X_Ctrl_RF_WE_A), .out( M_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+
+    Nbit_reg #(1, 1'b0) W_CTRL_Update_NZP_Reg_A(.in(M_Ctrl_Update_NZP_A), .out( W_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(1, 1'b0) W_CTRL_W_R7_Reg_A(.in(M_Ctrl_W_R7_A), .out( W_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(1, 1'b0) W_CTRL_RF_WE_Reg_A(.in(M_Ctrl_RF_WE_A), .out( W_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(3, 3'b000) W_Ctrl_NZP_Reg_A(.in(M_Ctrl_NZP_A), .out( W_Ctrl_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+
+
+    Nbit_reg #(1, 1'b0) X_CTRL_W_R7_Reg_B(.in(D_Ctrl_W_R7_B), .out( X_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_RF_WE_Reg_B(.in(D_Ctrl_RF_WE_B), .out( X_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_Control_Reg_B(.in(D_Ctrl_Control_insn_B), .out( X_Ctrl_Control_insn_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) X_CTRL_Update_NZP_Reg_B(.in(D_Ctrl_Update_NZP_B), .out( X_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+
+    Nbit_reg #(1, 1'b0) M_CTRL_Update_NZP_Reg_B(.in(X_Ctrl_Update_NZP_B), .out( M_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(3, 3'b000) M_Ctrl_NZP_Reg_B(.in(Ctrl_NZP_B), .out( M_Ctrl_NZP_out_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(1, 1'b0) M_CTRL_W_R7_Reg_B(.in(X_Ctrl_W_R7_B), .out( M_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(1, 1'b0) M_CTRL_RF_WE_Reg_B(.in(X_Ctrl_RF_WE_B), .out( M_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+    Nbit_reg #(1, 1'b0) W_CTRL_Update_NZP_Reg_B(.in(M_Ctrl_Update_NZP_B), .out( W_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(1, 1'b0) W_CTRL_W_R7_Reg_B(.in(M_Ctrl_W_R7_B), .out( W_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(1, 1'b0) W_CTRL_RF_WE_Reg_B(.in(M_Ctrl_RF_WE_B), .out( W_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(3, 3'b000) W_Ctrl_NZP_Reg_B(.in(M_Ctrl_NZP_B), .out( W_Ctrl_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+
+
+    // ************ Rs/Rt/Rd registers ************ // 
+    Nbit_reg #(3, 3'b000) X_Rs_Reg_A(.in(D_Rs_A), .out( X_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(3, 3'b000) X_Rt_Reg_A(.in(D_Rt_A), .out( X_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(3, 3'b000) X_Rd_Reg_A(.in(D_Rd_A), .out( X_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+
+    Nbit_reg #(3, 3'b000) M_Rs_Reg_A(.in(X_Rs_A), .out( M_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(3, 3'b000) M_Rt_Reg_A(.in(X_Rt_A), .out( M_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(3, 3'b000) M_Rd_Reg_A(.in(X_Rd_A), .out( M_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+
+
+    Nbit_reg #(3, 3'b000) X_Rs_Reg_B(.in(D_Rs_B), .out( X_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(3, 3'b000) X_Rt_Reg_B(.in(D_Rt_B), .out( X_Rt_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(3, 3'b000) X_Rd_Reg_B(.in(D_Rd_B), .out( X_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+
+    Nbit_reg #(3, 3'b000) M_Rs_Reg_B(.in(X_Rs_B), .out( M_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(3, 3'b000) M_Rt_Reg_B(.in(X_Rt_B), .out( M_Rt_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(3, 3'b000) M_Rd_Reg_B(.in(X_Rd_B), .out( M_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+
+
+    // ************ LDR/STR registers ************ // 
+    Nbit_reg #(1, 1'b0) X_STR_Reg_A(.in(D_insn_STR_A), .out( X_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(1, 1'b0) X_LDR_Reg_A(.in(D_insn_LDR_A), .out( X_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+
+    Nbit_reg #(1, 1'b0) M_STR_Reg_A(.in(X_insn_STR_A), .out( M_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_LDR_Reg_A(.in(X_insn_LDR_A), .out( M_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+
+    Nbit_reg #(1, 1'b0) W_LDR_Reg_A(.in(M_insn_LDR_A), .out( W_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(1, 1'b0) W_STR_Reg_A(.in(M_insn_STR_A), .out( W_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A )); 
+
+  
+    Nbit_reg #(1, 1'b0) X_STR_Reg_B(.in(D_insn_STR_B), .out( X_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(1, 1'b0) X_LDR_Reg_B(.in(D_insn_LDR_B), .out( X_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+
+    Nbit_reg #(1, 1'b0) M_STR_Reg_B(.in(X_insn_STR_B), .out( M_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(1, 1'b0) M_LDR_Reg_B(.in(X_insn_LDR_B), .out( M_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+
+    Nbit_reg #(1, 1'b0) W_LDR_Reg_B(.in(M_insn_LDR_B), .out( W_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(1, 1'b0) W_STR_Reg_B(.in(M_insn_STR_B), .out( W_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+
+
+    // ************ RF_Data registers ************ //
+    Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_A(.in(I_RF_data_A), .out( X_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_A(.in(X_RF_data_A), .out( M_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_A(.in(M_RF_data_A), .out( W_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+
+    Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_B(.in(I_RF_data_B), .out( X_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_B(.in(X_RF_data_B), .out( M_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_B(.in(M_RF_data_B), .out( W_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+    
+    
+    // ************ Memory-Related registers ************ //
+    Nbit_reg #(16, 16'h0000) W_MEM_Reg_A(.in(O_Mem), .out( W_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(O_Mem), .out( W_Mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( W_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_A(.in(o_dmem_towrite_A), .out( W_dmem_towrite_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( W_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+    Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_B(.in(o_dmem_towrite_B), .out( W_dmem_towrite_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+
+
+
    
     //************ Decoders ************//
     wire [2:0] Rd_A, Rd_B; // raw rd output from decoder; 
@@ -357,50 +469,13 @@ module lc4_processor(input wire         clk,             // main clock
     // X registers
 
     
-    Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_A(.in(I_RF_data_A), .out( X_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-
-
-    Nbit_reg #(1, 1'b0) X_R1RE_Reg_A(.in(R1RE_A), .out( X_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_R2RE_Reg_A(.in(R2RE_A), .out( X_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-
-
-    Nbit_reg #(1, 1'b0) X_STR_Reg_A(.in(D_insn_STR_A), .out( X_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_LDR_Reg_A(.in(D_insn_LDR_A), .out( X_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     
+
     Nbit_reg #(1, 1'b0) X_insn_BR_Reg_A(.in(D_insn_BR_A), .out( X_insn_BR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_W_R7_Reg_A(.in(D_Ctrl_W_R7_A), .out( X_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_RF_WE_Reg_A(.in(D_Ctrl_RF_WE_A), .out( X_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_Control_Reg_A(.in(D_Ctrl_Control_insn_A), .out( X_Ctrl_Control_insn_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_Update_NZP_Reg_A(.in(D_Ctrl_Update_NZP_A), .out( X_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-
-    Nbit_reg #(3, 3'b000) X_Rs_Reg_A(.in(D_Rs_A), .out( X_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(3, 3'b000) X_Rt_Reg_A(.in(D_Rt_A), .out( X_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-    Nbit_reg #(3, 3'b000) X_Rd_Reg_A(.in(D_Rd_A), .out( X_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-
-
-
-    
-    Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_B(.in(I_RF_data_B), .out( X_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-
-    
-
-    Nbit_reg #(1, 1'b0) X_R1RE_Reg_B(.in(R1RE_B), .out( X_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_R2RE_Reg_B(.in(R2RE_B), .out( X_R2RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-
-
-    Nbit_reg #(1, 1'b0) X_STR_Reg_B(.in(D_insn_STR_B), .out( X_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_LDR_Reg_B(.in(D_insn_LDR_B), .out( X_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    
     Nbit_reg #(1, 1'b0) X_insn_BR_Reg_B(.in(D_insn_BR_B), .out( X_insn_BR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_W_R7_Reg_B(.in(D_Ctrl_W_R7_B), .out( X_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_RF_WE_Reg_B(.in(D_Ctrl_RF_WE_B), .out( X_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_Control_Reg_B(.in(D_Ctrl_Control_insn_B), .out( X_Ctrl_Control_insn_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(1, 1'b0) X_CTRL_Update_NZP_Reg_B(.in(D_Ctrl_Update_NZP_B), .out( X_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
-    Nbit_reg #(3, 3'b000) X_Rs_Reg_B(.in(D_Rs_B), .out( X_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(3, 3'b000) X_Rt_Reg_B(.in(D_Rt_B), .out( X_Rt_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-    Nbit_reg #(3, 3'b000) X_Rd_Reg_B(.in(D_Rd_B), .out( X_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-
+    
 
 
     //************ Bypass Classifiers (WMX) ************//
@@ -502,63 +577,20 @@ module lc4_processor(input wire         clk,             // main clock
     assign M_Flush_A = 1'b0;
     Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(O_ALU_A), .out( M_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
        
-    Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_A(.in(X_RF_data_A), .out( M_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-
-
-    Nbit_reg #(1, 1'b0) M_STR_Reg_A(.in(X_insn_STR_A), .out( M_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(1, 1'b0) M_LDR_Reg_A(.in(X_insn_LDR_A), .out( M_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-
-
-    Nbit_reg #(1, 1'b0) M_R1RE_Reg_A(.in(X_R1RE_A), .out( M_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(1, 1'b0) M_R2RE_Reg_A(.in(X_R2RE_A), .out( M_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-
 
     Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_A(.in(Stall_A), .out( M_Stall_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_B(.in(Stall_B), .out( M_Stall_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
-
-    Nbit_reg #(1, 1'b0) M_CTRL_W_R7_Reg_A(.in(X_Ctrl_W_R7_A), .out( M_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(1, 1'b0) M_CTRL_RF_WE_Reg_A(.in(X_Ctrl_RF_WE_A), .out( M_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    
-
-    Nbit_reg #(1, 1'b0) M_CTRL_Update_NZP_Reg_A(.in(X_Ctrl_Update_NZP_A), .out( M_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    
     assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A;
-    Nbit_reg #(3, 3'b000) M_Ctrl_NZP_Reg_A(.in(Ctrl_NZP_A), .out( M_Ctrl_NZP_out_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rs_Reg_A(.in(X_Rs_A), .out( M_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rt_Reg_A(.in(X_Rt_A), .out( M_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rd_Reg_A(.in(X_Rd_A), .out( M_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-
-    
 
     assign M_Flush_B = 1'b0;
     Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(O_ALU_B), .out( M_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_B(.in(X_RF_data_B), .out( M_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
-
-    Nbit_reg #(1, 1'b0) M_STR_Reg_B(.in(X_insn_STR_B), .out( M_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(1, 1'b0) M_LDR_Reg_B(.in(X_insn_LDR_B), .out( M_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
-
-    Nbit_reg #(1, 1'b0) M_R1RE_Reg_B(.in(X_R1RE_B), .out( M_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(1, 1'b0) M_R2RE_Reg_B(.in(X_R2RE_B), .out( M_R2RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
     
-    Nbit_reg #(1, 1'b0) M_Stall_Sig_Reg_B(.in(Stall_B), .out( M_Stall_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
-
-    Nbit_reg #(1, 1'b0) M_CTRL_W_R7_Reg_B(.in(X_Ctrl_W_R7_B), .out( M_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(1, 1'b0) M_CTRL_RF_WE_Reg_B(.in(X_Ctrl_RF_WE_B), .out( M_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    
         
-
-    Nbit_reg #(1, 1'b0) M_CTRL_Update_NZP_Reg_B(.in(X_Ctrl_Update_NZP_B), .out( M_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    
     assign M_Ctrl_NZP_B = (M_insn_LDR_B)? Mem_NZP_Update : M_Ctrl_NZP_out_B;
-    Nbit_reg #(3, 3'b000) M_Ctrl_NZP_Reg_B(.in(Ctrl_NZP_B), .out( M_Ctrl_NZP_out_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rs_Reg_B(.in(X_Rs_B), .out( M_Rs_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rt_Reg_B(.in(X_Rt_B), .out( M_Rt_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(3, 3'b000) M_Rd_Reg_B(.in(X_Rd_B), .out( M_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
+    
 
     // memory
 
@@ -616,45 +648,23 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign W_Flush_A = 1'b0;
     Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(M_ALU_A), .out( W_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(16, 16'h0000) W_MEM_Reg_A(.in(O_Mem), .out( W_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_A(.in(M_RF_data_A), .out( W_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    
+    
 
-    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( W_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_A(.in(o_dmem_towrite_A), .out( W_dmem_towrite_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
-    Nbit_reg #(1, 1'b0) W_LDR_Reg_A(.in(M_insn_LDR_A), .out( W_insn_LDR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(1, 1'b0) W_STR_Reg_A(.in(M_insn_STR_A), .out( W_insn_STR_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
-    Nbit_reg #(1, 1'b0) W_CTRL_W_R7_Reg_A(.in(M_Ctrl_W_R7_A), .out( W_Ctrl_W_R7_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(1, 1'b0) W_CTRL_RF_WE_Reg_A(.in(M_Ctrl_RF_WE_A), .out( W_Ctrl_RF_WE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
-    Nbit_reg #(3, 3'b000) W_Ctrl_NZP_Reg_A(.in(M_Ctrl_NZP_A), .out( W_Ctrl_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
     Nbit_reg #(3, 3'b000) W_Rd_Reg_A(.in(M_Rd_A), .out( W_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
-    Nbit_reg #(1, 1'b0) W_CTRL_Update_NZP_Reg_A(.in(M_Ctrl_Update_NZP_A), .out( W_Ctrl_Update_NZP_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
+   
     assign W_RF_IN_data_A = (W_insn_LDR_A) ? W_Mem_A : W_ALU_A;
-
 
 
     assign W_Flush_B = 1'b0;
     Nbit_reg #(16, 16'h0000) W_BLU_Reg_B(.in(M_ALU_B), .out( W_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(O_Mem), .out( W_Mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_B(.in(M_RF_data_B), .out( W_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
-    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( W_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_B(.in(o_dmem_towrite_B), .out( W_dmem_towrite_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
-    Nbit_reg #(1, 1'b0) W_LDR_Reg_B(.in(M_insn_LDR_B), .out( W_insn_LDR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(1, 1'b0) W_STR_Reg_B(.in(M_insn_STR_B), .out( W_insn_STR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
-    Nbit_reg #(1, 1'b0) W_CTRL_W_R7_Reg_B(.in(M_Ctrl_W_R7_B), .out( W_Ctrl_W_R7_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(1, 1'b0) W_CTRL_RF_WE_Reg_B(.in(M_Ctrl_RF_WE_B), .out( W_Ctrl_RF_WE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(3, 3'b000) W_Ctrl_NZP_Reg_B(.in(M_Ctrl_NZP_B), .out( W_Ctrl_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+     
+    
+    
+    
     Nbit_reg #(3, 3'b000) W_Rd_Reg_B(.in(M_Rd_B), .out( W_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
-    Nbit_reg #(1, 1'b0) W_CTRL_Update_NZP_Reg_B(.in(M_Ctrl_Update_NZP_B), .out( W_Ctrl_Update_NZP_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-
+    
     assign W_RF_IN_data_B = (W_insn_LDR_B) ? W_Mem_B : W_ALU_B;
 
 
