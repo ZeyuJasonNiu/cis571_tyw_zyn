@@ -50,7 +50,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire pipe_switch;
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
     Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_final_A), .out(x2m_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
-    Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(34, 34'b0) w_insn_reg_A (.in(m2w_bus_A), .out(w_o_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
     Nbit_reg #(16, 16'b0) d_insn_reg_B (.in(d_i_bus_B), .out(d2x_bus_tmp_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
@@ -105,7 +105,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     Nbit_reg #(2, 2'b10) d_stall_reg_A (.in(d_stall_i_A), .out(d_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
     Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A_final), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
-    Nbit_reg #(2, 2'b10) m_stall_reg_A (.in(x_stall_o_A), .out(m_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(2, 2'b10) m_stall_reg_A (.in(x_stall_o_A), .out(m_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(2, 2'b10) w_stall_reg_A (.in(m_stall_o_A), .out(test_stall_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
     Nbit_reg #(2, 2'b10) d_stall_reg_B (.in(d_stall_i_B), .out(d_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
@@ -139,10 +139,10 @@ module lc4_processor(input wire         clk,             // main clock
 
     wire d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
-    assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
-    assign d_flush_B = x_br_taken_or_ctrl_B | x_br_taken_or_ctrl_A;
-    assign x_flush_A = stall_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
-    assign x_flush_B = stall_B | x_br_taken_or_ctrl_B | pipe_switch | x_br_taken_or_ctrl_A;
+    assign d_flush_A = x_br_taken_or_ctrl_A || x_br_taken_or_ctrl_B;
+    assign d_flush_B = x_br_taken_or_ctrl_B || x_br_taken_or_ctrl_A;
+    assign x_flush_A = stall_A || x_br_taken_or_ctrl_A || x_br_taken_or_ctrl_B;
+    assign x_flush_B = stall_B || x_br_taken_or_ctrl_B || pipe_switch || x_br_taken_or_ctrl_A;
     assign m_flush_B = x_br_taken_or_ctrl_A;
    
     
@@ -208,8 +208,8 @@ module lc4_processor(input wire         clk,             // main clock
                     
     Nbit_reg #(16, 16'b0) x_A_reg_A (.in(x_A_i_A), .out(x_A_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
     Nbit_reg #(16, 16'b0) x_B_reg_A (.in(x_B_i_A), .out(x_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
-    Nbit_reg #(16, 16'b0) m_B_reg_A (.in(rt_bypass_res_A), .out(m_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) m_O_reg_A (.in(m_O_i_A), .out(m_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) m_B_reg_A (.in(rt_bypass_res_A), .out(m_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(16, 16'b0) m_O_reg_A (.in(m_O_i_A), .out(m_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(16, 16'b0) w_O_reg_A (.in(m_O_o_A), .out(w_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
     Nbit_reg #(16, 16'b0) w_D_reg_A (.in(i_cur_dmem_data_A), .out(w_D_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
@@ -334,7 +334,7 @@ module lc4_processor(input wire         clk,             // main clock
                i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
     wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
                nzp_alu_B, nzp_ld_B, nzp_trap_B;
-    Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
     Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
