@@ -43,8 +43,11 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
     /***  YOUR CODE HERE ***/
-    // Instruction Registers
+
     assign led_data = switch_data; 
+
+
+    // ************ Instruction Registers ************ //
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
@@ -62,8 +65,13 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
-    assign pipe_switch = ~x_flush_A && (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);
 
+
+    // ************ Pipe Switching and LTU Classifier ************ //
+    assign pipe_switch =    ~x_flush_A && 
+                            (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);           // Case for Pipe Switching
+
+    //~~~~~~~~~~~~ Instruction input of stage-D should depend on pipe switch situation ~~~~~~~~~~~~ //
     assign d_i_bus_A = pipe_switch ? d2x_bus_tmp_B : 
                        stall_A ? d2x_bus_tmp_A :
                        i_cur_insn_A;
@@ -74,35 +82,39 @@ module lc4_processor(input wire         clk,             // main clock
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
                                (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
                                ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0));
-    
+
     assign LTU_within_A = (x2m_bus_A[19]) && 
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
                           ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0)) &&
                           (~LTU_between_XB_DA);
+
     assign LTU_within_B = (x2m_bus_B[19]) && 
                           (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
                           ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) 
                           && (~B_need_A);
+
     assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
                                (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_A[27:25])) || 
                                ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) &&
                                (~LTU_within_B) && 
                                (~B_need_A);
-     assign B_need_A = ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
-                       ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                       (d2x_bus_B[17] && d2x_bus_A[21]);
-    
-    assign LTU_A = LTU_within_A || LTU_between_XB_DA;
-    assign LTU_B = LTU_within_B || LTU_between_XA_DB;
-    assign mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);
 
-    // Pipe X.A /B IS A LDR, which is used by a following BR insns D.A
+    //~~~~~~~~~~~~ LTU situations is in general 4-types ~~~~~~~~~~~~ //
+    assign LTU_A =  LTU_within_A || LTU_between_XB_DA;                  // Case1: LTU in Pipe-A
+    assign LTU_B =  LTU_within_B || LTU_between_XA_DB;                  // Case2: LTU in Pipe-B
+    assign B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
+                        ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
+                        (d2x_bus_B[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
+    assign mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);           // Case4: Both A & B are dmem instrucitons
+
+    // ~~~~~~~~~~~~ Pipe X.A /B IS A LDR, which is used by a following BR insns D.A ~~~~~~~~~~~~ //
     wire LTBr_A, LTBr_B;
     assign LTBr_A = d2x_bus_A[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);
     assign LTBr_B = d2x_bus_B[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]); 
+
    
 
-    // Stall Registers
+    // ************ Stall Registers ************ //
     wire [1:0] d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
     wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_i_B, m_stall_o_B;
     wire stall_A, stall_B;
@@ -131,7 +143,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_B = ((d2x_bus_B[15:0] == 16'h0000) && (d2x_pc_B == 16'h0000)) ? 2'd2 : d_stall_i_B;
     assign m_stall_i_B = (x_br_taken_or_ctrl_A == 1) ? 2'd2 : x_stall_o_B;
 
-
     wire d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
@@ -140,8 +151,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_flush_B = stall_B | x_br_taken_or_ctrl_B | pipe_switch | x_br_taken_or_ctrl_A;
     assign m_flush_B = x_br_taken_or_ctrl_A;
    
-    
-    // PC Registers
+
+
+    // ************ PC Registers ************ //
     wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
     wire [15:0] d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
@@ -188,7 +200,8 @@ module lc4_processor(input wire         clk,             // main clock
     // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
 
 
-    // Regiters for A, B, O, D //
+
+    // ************ A, B, O, D Registers ************ //
     wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
                 m_B_o_A, m_O_i_A, m_O_o_A, 
                 w_O_o_A, w_D_i_A, w_D_o_A;
@@ -226,6 +239,11 @@ module lc4_processor(input wire         clk,             // main clock
     assign  write_back_A = (w_o_bus_A[19] == 1) ? w_D_o_A: w_O_o_A;
     assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o_B: w_O_o_B;
 
+
+
+    // ************ Superscaler Decoders ************ //
+    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
+
     lc4_decoder Decoder_Pipe_A(
         .r1sel(d2x_bus_A[33:31]), 
         .r2sel(d2x_bus_A[30:28]),
@@ -239,7 +257,8 @@ module lc4_processor(input wire         clk,             // main clock
         .is_store(d2x_bus_A[18]),
         .is_branch(d2x_bus_A[17]), 
         .is_control_insn(d2x_bus_A[16]),
-        .insn(d2x_bus_tmp_A));
+        .insn(d2x_bus_tmp_A)
+        );
     
     lc4_decoder Decoder_Pipe_B(
         .r1sel(d2x_bus_B[33:31]), 
@@ -254,13 +273,12 @@ module lc4_processor(input wire         clk,             // main clock
         .is_store(d2x_bus_B[18]),
         .is_branch(d2x_bus_B[17]), 
         .is_control_insn(d2x_bus_B[16]),
-        .insn(d2x_bus_tmp_B));
+        .insn(d2x_bus_tmp_B)
+        );
     
-    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
-    wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
-                rt_bypass_res_A, rt_bypass_res_B,
-                wm_bypass_res_A, wm_or_mm_bypass_res_B;                
-           
+
+
+    // ************ Superscaler Regfile ************ // 
     lc4_regfile_ss Superscaler_Regfile(
         .clk(clk),
         .gwe(gwe),
@@ -278,7 +296,8 @@ module lc4_processor(input wire         clk,             // main clock
         .i_rd_we_A(w_o_bus_A[22]),
         .i_rd_B(w_o_bus_B[27:25]),
         .i_wdata_B(write_back_B),
-        .i_rd_we_B(w_o_bus_B[22]));
+        .i_rd_we_B(w_o_bus_B[22])
+        );
 
     wire [15:0] o_alu_result_A, o_alu_result_B;
 
@@ -287,14 +306,16 @@ module lc4_processor(input wire         clk,             // main clock
         .i_pc(x2m_pc_A),
         .i_r1data(rs_bypass_res_A),
         .i_r2data(rt_bypass_res_A),
-        .o_result(o_alu_result_A));
+        .o_result(o_alu_result_A)
+        );
     
     lc4_alu ALU_Pipe_B( 
         .i_insn(x2m_bus_B[15:0]),
         .i_pc(x2m_pc_B),
         .i_r1data(rs_bypass_res_B),
         .i_r2data(rt_bypass_res_B),
-        .o_result(o_alu_result_B));
+        .o_result(o_alu_result_B)
+        );
     
     //  Register for dmem parameter's
     // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
@@ -311,24 +332,32 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_dmem_data_B = (m2w_bus_B[19] == 1) ? i_cur_dmem_data :
                               (m2w_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;    
     
-    // NZP Registers //
+
+
+    // ************ NZP Decoders ************ //
     Nbit_reg Superscalar_NZP_Reg_A(
         .in(i_regfile_wdata_sign_A), 
         .out(o_nzp_reg_val_A),
         .clk(clk),
         .we(x2m_bus_A[21]),
         .gwe(gwe),
-        .rst(rst));
+        .rst(rst)
+        );
     defparam Superscalar_NZP_Reg_A.n = 3;
+
     Nbit_reg Superscalar_NZP_Reg_B(
         .in(i_regfile_wdata_sign_B), 
         .out(o_nzp_reg_val_B),
         .clk(clk),
         .we(x2m_bus_B[21]),
         .gwe(gwe),
-        .rst(rst));
+        .rst(rst)
+        );
     defparam Superscalar_NZP_Reg_B.n = 3;
-    // Registers for NZP
+
+
+
+    // ************ M/W Stage NZP Decoders ************ //
     wire [2:0] i_regfile_wdata_sign_A, m_nzp_o_A, w_nzp_i_A,
                i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
     wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
@@ -337,7 +366,6 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-   
    
     assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
     assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
@@ -366,12 +394,16 @@ module lc4_processor(input wire         clk,             // main clock
     assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
                                     ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
                                     nzp_alu_B;
+
+
     
-    // MX, WX bypass
-    wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
-         rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
-         rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
-         rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
+    // ************ MX/WX bypass situation classifier ************ //
+    wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
+                rt_bypass_res_A, rt_bypass_res_B;               // Bypass Result for ALU input
+    wire        rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
+                rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
+                rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
+                rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;             // Bypass Cases
     
     assign rs_MB_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[24]);
     assign rs_MA_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[24]);
@@ -414,13 +446,18 @@ module lc4_processor(input wire         clk,             // main clock
                              rt_WA_XB_bypass ? write_back_A :
                              x_B_o_B;
     
-    // WM and MM bypass
-    wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
+   
+   
+    // ************ WM/MM bypass classifier ************ //
+    wire [15:0]     wm_bypass_res_A, wm_or_mm_bypass_res_B;             // Bypass Result for ALU input
+    wire            WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;       // Bypass cases
+
     assign WB_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22]);
     assign WA_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22]);
     assign WB_MB_bypass = (m2w_bus_B[18]) && (m2w_bus_B[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22]);
     assign WA_MB_bypass = (m2w_bus_B[18]) && (m2w_bus_B[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22]);
     assign MA_MB_bypass = (m2w_bus_B[18]) && (m2w_bus_B[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22]);
+
     assign wm_bypass_res_A = WB_MA_bypass ? write_back_B :
                              WA_MA_bypass ? write_back_A :
                              m_B_o_A;
@@ -428,9 +465,13 @@ module lc4_processor(input wire         clk,             // main clock
                              WA_MB_bypass ? write_back_A :
                              MA_MB_bypass ? m_B_o_A :
                              m_B_o_B;
-    
+
+
+
+    // ************ Test Wire Assignment ************ //
     assign o_cur_pc = f2d_pc_A;
     assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
+
     assign test_cur_pc_A = w_o_pc_A;
     assign test_cur_pc_B = w_o_pc_B;
     assign test_cur_insn_A = w_o_bus_A[15:0];
@@ -443,6 +484,9 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_data_B =  write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
+
+
+
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
     *
