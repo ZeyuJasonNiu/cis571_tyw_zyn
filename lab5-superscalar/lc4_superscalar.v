@@ -79,141 +79,104 @@ module lc4_processor(input wire         clk,             // main clock
                             16'h0000;     
     assign test_dmem_data_B = (W_insn_STR_B) ?  W_dmem_towrite_B: 
                             (W_insn_LDR_B) ? W_Mem_B:
-                            16'h0000;                               
-    // Define Control Signals
-    wire D_Ctrl_W_R7_A;
-    wire X_Ctrl_W_R7_A;
-    wire M_Ctrl_W_R7_A;
-    wire W_Ctrl_W_R7_A;
+                            16'h0000;
 
-    wire D_Ctrl_RF_WE_A;
-    wire X_Ctrl_RF_WE_A;
-    wire M_Ctrl_RF_WE_A;  
-    wire W_Ctrl_RF_WE_A;
 
-    wire D_Ctrl_Update_NZP_A;
-    wire X_Ctrl_Update_NZP_A;
+
+    // ************ Control Signals ************ //
+    wire D_Ctrl_W_R7_A, X_Ctrl_W_R7_A, M_Ctrl_W_R7_A, W_Ctrl_W_R7_A;
+    wire D_Ctrl_W_R7_B, X_Ctrl_W_R7_B, M_Ctrl_W_R7_B, W_Ctrl_W_R7_B;
+
+    wire D_Ctrl_RF_WE_A, X_Ctrl_RF_WE_A, M_Ctrl_RF_WE_A, W_Ctrl_RF_WE_A;
+    wire D_Ctrl_RF_WE_B, X_Ctrl_RF_WE_B, M_Ctrl_RF_WE_B, W_Ctrl_RF_WE_B;
+
+    wire D_Ctrl_Update_NZP_A, X_Ctrl_Update_NZP_A;
+    wire D_Ctrl_Update_NZP_B, X_Ctrl_Update_NZP_B;
+
+    wire D_insn_BR_A, X_insn_BR_A;
+    wire D_insn_BR_B, X_insn_BR_B;
+
+    wire D_insn_LDR_A, X_insn_LDR_A, M_insn_LDR_A, W_insn_LDR_A;
+    wire D_insn_LDR_B, X_insn_LDR_B, M_insn_LDR_B, W_insn_LDR_B;
+
+    wire D_insn_STR_A, X_insn_STR_A, M_insn_STR_A, W_insn_STR_A;
+    wire D_insn_STR_B, X_insn_STR_B, M_insn_STR_B, W_insn_STR_B;
 
     wire D_Ctrl_Control_insn_A;
     wire X_Ctrl_PC_JMP_A;
     wire X_Ctrl_BR_JMP_A;
-    wire D_insn_BR_A;
-    wire X_insn_BR_A;
-    wire D_insn_LDR_A;
-    wire X_insn_LDR_A;
-    wire M_insn_LDR_A;
-    wire W_insn_LDR_A;
-    wire D_insn_STR_A;
-    wire X_insn_STR_A;
-    wire M_insn_STR_A;
-    wire W_insn_STR_A;
-    
-    wire D_Ctrl_W_R7_B;
-    wire X_Ctrl_W_R7_B;
-    wire M_Ctrl_W_R7_B;
-    wire W_Ctrl_W_R7_B;
-
-    wire D_Ctrl_RF_WE_B;
-    wire X_Ctrl_RF_WE_B;
-    wire M_Ctrl_RF_WE_B;  
-    wire W_Ctrl_RF_WE_B;
-
-    wire D_Ctrl_Update_NZP_B;
-    wire X_Ctrl_Update_NZP_B;
 
     wire D_Ctrl_Control_insn_B;
     wire X_Ctrl_PC_JMP_B;
-    wire X_Ctrl_BR_JMP_B;
-    wire D_insn_BR_B;
-    wire X_insn_BR_B;
-    wire D_insn_LDR_B;
-    wire X_insn_LDR_B;
-    wire M_insn_LDR_B;
-    wire W_insn_LDR_B;
-    wire D_insn_STR_B;
-    wire X_insn_STR_B;
-    wire M_insn_STR_B;
-    wire W_insn_STR_B;
+    wire X_Ctrl_BR_JMP_B; 
 
 
-    // PC
-    // pc wires attached to the PC register's ports
-    wire [15:0]   pc;      // Current program counter (read out from pc_reg)
-    wire [15:0]   next_pc; // Next program counter (you compute this and feed it into next_pc)
 
-    // WHATS NEXT PC
+    // ************ PC-related registers ************ //
+    // Program counter register, starts at 8200h at bootup
+    wire [15:0]     pc;      // Current program counter (read out from pc_reg)
+    wire [15:0]     next_pc; // Next program counter (you compute this and feed it into next_pc)
+    wire [15:0]     D_I_PC_A, D_PC_A, X_PC_A, M_PC_A, W_PC_A;
+    wire [15:0]     D_I_PC_B, D_PC_B, X_PC_B, M_PC_B, W_PC_B;
+    // PC adder
+    wire [15:0] PC_ADD_ONE_A, D_PC_ADD_ONE_A;
+    wire [15:0] PC_ADD_ONE_B, D_PC_ADD_ONE_B;
+
+    Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
+    cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
+
+    Nbit_reg #(16, 16'h0000) D_PC_Reg_A(.in(D_I_PC_A), .out( D_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) X_PC_Reg_A(.in(D_PC_A), .out( X_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) M_PC_Reg_A(.in(X_PC_A), .out( M_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) W_PC_Reg_A(.in(M_PC_A), .out( W_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+
+    Nbit_reg #(16, 16'h0000) D_PC_Reg_B(.in(D_I_PC_B), .out( D_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) X_PC_Reg_B(.in(D_PC_B), .out( X_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) M_PC_Reg_B(.in(X_PC_B), .out( M_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) W_PC_Reg_B(.in(M_PC_B), .out( W_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
+
+    assign D_I_PC_A = (Pipe_Switch) ? D_PC_B : (Stall_A) ? D_PC_A : pc;
+    assign D_I_PC_B = (Pipe_Switch) ? pc :(Stall_B) ? D_PC_B : PC_ADD_ONE_A;
+    // Calculate pc value for next cycle //
     assign next_pc = Stall_A ? pc :
                     Pipe_Switch ? PC_ADD_ONE_A :
                     X_Ctrl_PC_JMP_A ? O_ALU_A :
                     X_Ctrl_PC_JMP_B ? O_ALU_B : 
                     PC_ADD_ONE_B ;
 
-    assign o_cur_pc = pc;
-    wire [15:0] D_PC_A;
-    wire [15:0] D_I_PC_A;
-    wire [15:0] D_PC_B;
-    wire [15:0] D_I_PC_B;
 
-    // PC adder
-    wire [15:0] PC_ADD_ONE_A;
-    wire [15:0] D_PC_ADD_ONE_A;
-    wire [15:0] PC_ADD_ONE_B;
-    wire [15:0] D_PC_ADD_ONE_B;
-    cla16 PCadder_A(.a(pc), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_A));
-    cla16 PCadder_B(.a(PC_ADD_ONE_A), .b(16'h0000), .cin(1'b1), .sum(PC_ADD_ONE_B));
+    // ************ Instruction registers ************ //
+    wire [15:0] F_INSN_A, D_INSN_A, X_INSN_A, M_INSN_A, W_INSN_A;  
+    wire [15:0] F_INSN_B, D_INSN_B, X_INSN_B, M_INSN_B, W_INSN_B; 
 
-    // D Register
+    Nbit_reg #(16, 16'h0000) D_insn_Reg_A(.in(F_INSN_A), .out( D_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) X_insn_Reg_A(.in(D_INSN_A), .out( X_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) M_insn_Reg_A(.in(X_INSN_A), .out( M_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) W_insn_Reg_A(.in(M_INSN_A), .out( W_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
 
-    wire [15:0] F_INSN_A;
-    wire [15:0] F_INSN_B;
+    Nbit_reg #(16, 16'h0000) D_insn_Reg_B(.in(F_INSN_B), .out( D_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
+    Nbit_reg #(16, 16'h0000) X_insn_Reg_B(.in(D_INSN_B), .out( X_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) M_insn_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
+    Nbit_reg #(16, 16'h0000) W_insn_Reg_B(.in(M_INSN_B), .out( W_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
-    // pipe line switching
+    // pipeline switching
     assign F_INSN_A = (Pipe_Switch) ? D_INSN_B :
                         (Stall_A) ? D_INSN_A : i_cur_insn_A;
     assign F_INSN_B = (Pipe_Switch) ? i_cur_insn_A :
                         (Stall_A) ? D_INSN_B : 
                         i_cur_insn_B;
 
-    wire [15:0] D_INSN_A;
-    //wire [15:0] D_I_INSN_A;
-    wire [15:0] D_INSN_B;
-    //wire [15:0] D_I_INSN_B;
 
-
-        // ************ PC registers ************ //
-        // Program counter register, starts at 8200h at bootup
-        Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-
-        Nbit_reg #(16, 16'h0000) D_PC_Reg_A(.in(D_I_PC_A), .out( D_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst ));
-        Nbit_reg #(16, 16'h0000) X_PC_Reg_A(.in(D_PC_A), .out( X_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-        Nbit_reg #(16, 16'h0000) M_PC_Reg_A(.in(X_PC_A), .out( M_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_A | rst ));
-        Nbit_reg #(16, 16'h0000) W_PC_Reg_A(.in(M_PC_A), .out( W_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-
-        Nbit_reg #(16, 16'h0000) D_PC_Reg_B(.in(D_I_PC_B), .out( D_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst ));
-        Nbit_reg #(16, 16'h0000) X_PC_Reg_B(.in(D_PC_B), .out( X_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-        Nbit_reg #(16, 16'h0000) M_PC_Reg_B(.in(X_PC_B), .out( M_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_B | rst ));
-        Nbit_reg #(16, 16'h0000) W_PC_Reg_B(.in(M_PC_B), .out( W_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-        
-        assign D_I_PC_A = (Pipe_Switch) ? D_PC_B : (Stall_A) ? D_PC_A : pc;
-        assign D_I_PC_B = (Pipe_Switch) ? pc :(Stall_B) ? D_PC_B : PC_ADD_ONE_A;
-
-
-        // ************ Instruction registers ************ //                    
-        Nbit_reg #(16, 16'h0000) D_insn_Reg_A(.in(F_INSN_A), .out( D_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
-        Nbit_reg #(16, 16'h0000) X_insn_Reg_A(.in(D_INSN_A), .out( X_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-        
-        Nbit_reg #(16, 16'h0000) D_insn_Reg_B(.in(F_INSN_B), .out( D_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
-        Nbit_reg #(16, 16'h0000) X_insn_Reg_B(.in(D_INSN_B), .out( X_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
-
-
-
-
-
-
-        Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_A(.in(PC_ADD_ONE_A), .out( D_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
-        // B
-        
-        Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_B(.in(PC_ADD_ONE_B), .out( D_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
+    // ************ PC+1 registers ************ //
+    wire [15:0] X_PC_ADD_ONE_B;
+    Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_A(.in(PC_ADD_ONE_A), .out( D_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));        
+    Nbit_reg #(16, 16'h0000) X_PC_ADD_One_Reg_A(.in(D_PC_ADD_ONE_A), .out( X_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
+    Nbit_reg #(16, 16'h0000) M_PC_ADD_One_Reg_A(.in(X_PC_ADD_ONE_A), .out( M_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+ 
+    Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_B(.in(PC_ADD_ONE_B), .out( D_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
+    Nbit_reg #(16, 16'h0000) X_PC_ADD_One_Reg_B(.in(D_PC_ADD_ONE_B), .out( X_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+    Nbit_reg #(16, 16'h0000) M_PC_ADD_One_Reg_B(.in(X_PC_ADD_ONE_B), .out( M_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
       
    
@@ -311,7 +274,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0] X_Rd_A;
     wire X_Ctrl_Control_insn_A;
 
-    Nbit_reg #(16, 16'h0000) X_PC_ADD_One_Reg_A(.in(D_PC_ADD_ONE_A), .out( X_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     
     Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_A(.in(I_RF_data_A), .out( X_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
 
@@ -348,7 +310,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0] X_Rd_B;
     wire X_Ctrl_Control_insn_B;
 
-    Nbit_reg #(16, 16'h0000) X_PC_ADD_One_Reg_B(.in(D_PC_ADD_ONE_B), .out( X_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     
     Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_B(.in(I_RF_data_B), .out( X_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
 
@@ -480,9 +441,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] M_INSN_A;
     assign M_Flush_A = 1'b0;
     Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(O_ALU_A), .out( M_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) M_R2_Reg_A(.in(ALU_in2_A), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) M_PC_ADD_One_Reg_A(.in(X_PC_ADD_ONE_A), .out( M_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) M_INSN_Reg_A(.in(X_INSN_A), .out( M_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) M_R2_Reg_A(.in(ALU_in2_A), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  )); 
     Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_A(.in(X_RF_data_A), .out( M_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
 
 
@@ -525,7 +484,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign M_Flush_B = 1'b0;
     Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(O_ALU_B), .out( M_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(16, 16'h0000) M_R2_Reg_B(.in(ALU_in2_B), .out( M_R2_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-    Nbit_reg #(16, 16'h0000) M_PC_ADD_One_Reg_B(.in(X_PC_ADD_ONE_B), .out( M_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(16, 16'h0000) M_RF_Data_Reg_B(.in(X_RF_data_B), .out( M_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
@@ -622,7 +580,6 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(M_ALU_A), .out( W_ALU_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
     Nbit_reg #(16, 16'h0000) W_MEM_Reg_A(.in(O_Mem), .out( W_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
     Nbit_reg #(16, 16'h0000) W_PC_ADD_One_Reg_A(.in(M_PC_ADD_ONE_A), .out( W_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(16, 16'h0000) W_INSN_Reg_A(.in(M_INSN_A), .out( W_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
     Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_A(.in(M_RF_data_A), .out( W_RF_data_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
 
     Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( W_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
@@ -654,7 +611,6 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) W_BLU_Reg_B(.in(M_ALU_B), .out( W_ALU_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(O_Mem), .out( W_Mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     Nbit_reg #(16, 16'h0000) W_PC_ADD_One_Reg_B(.in(M_PC_ADD_ONE_B), .out( W_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
-    Nbit_reg #(16, 16'h0000) W_INSN_Reg_B(.in(M_INSN_B), .out( W_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_B(.in(M_RF_data_B), .out( W_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
     Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( W_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
