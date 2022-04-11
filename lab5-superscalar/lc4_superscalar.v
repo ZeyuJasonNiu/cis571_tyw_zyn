@@ -109,27 +109,19 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // wire for X register wires
-    wire X_R1RE_A;
-    wire X_R2RE_A;
-    wire X_R1RE_B;
-    wire X_R2RE_B;
+
     // A
-    wire [15:0] X_INSN_A;
     wire [15:0] X_PC_ADD_ONE_A;
     wire [15:0] X_R1_A;
     wire [15:0] X_R2_A;   
-    wire [2:0] X_Rs_A;
-    wire [2:0] X_Rt_A;
-    wire [2:0] X_Rd_A;
+
     wire X_Ctrl_Control_insn_A;
     // B
-    wire [15:0] X_INSN_B;
     wire [15:0] X_PC_ADD_ONE_B;
     wire [15:0] X_R1_B;
-    wire [15:0] X_R2_B;   
-    wire [2:0] X_Rs_B;
-    wire [2:0] X_Rt_B;
-    wire [2:0] X_Rd_B;
+    wire [15:0] X_R2_B;
+
+
     wire X_Ctrl_Control_insn_B;
 
 
@@ -138,13 +130,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] M_ALU_A;
     wire [15:0] M_R2_A;
 
-    wire [2:0] M_Rs_A;
-    wire [2:0] M_Rt_A;
-    wire [2:0] M_Rd_A;
 
-    wire [15:0] M_INSN_A;
-    wire M_R1RE_A;
-    wire M_R2RE_A;
     wire M_Stall_A;
 
     wire M_Ctrl_Update_NZP_A;
@@ -154,13 +140,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] M_ALU_B;
     wire [15:0] M_R2_B;
 
-    wire [2:0] M_Rs_B;
-    wire [2:0] M_Rt_B;
-    wire [2:0] M_Rd_B;
 
-    wire [15:0] M_INSN_B;
-    wire M_R1RE_B;
-    wire M_R2RE_B;
     wire M_Stall_B;
     wire M_Ctrl_Update_NZP_B;
     wire [2:0]  M_Ctrl_NZP_out_B;
@@ -178,16 +158,14 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] W_ALU_A;
     wire [15:0] W_Mem_A;
     wire [15:0] W_PC_ADD_ONE_A;
-    wire [2:0] W_Rd_A;
-    wire [15:0] W_INSN_A;
+
     wire W_Ctrl_Update_NZP_A;
     //B
     wire [15:0] W_ALU_B;
     wire [15:0] W_Mem_B;
     wire [15:0] W_PC_ADD_ONE_B;
-    wire [2:0] W_Rd_B;
-    wire [15:0] W_INSN_B;
     wire W_Ctrl_Update_NZP_B;
+
 
 
     // ************ PC registers ************ //  
@@ -228,8 +206,8 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // ************ Instruction registers ************ // 
-    wire [15:0] F_INSN_A, F_INSN_B; 
-    wire [15:0] D_INSN_A, D_INSN_B;                  
+    wire [15:0] F_INSN_A, D_INSN_A, X_INSN_A, M_INSN_A, W_INSN_A; 
+    wire [15:0] F_INSN_B, D_INSN_B, X_INSN_B, M_INSN_B, W_INSN_B;                  
     Nbit_reg #(16, 16'h0000) D_insn_Reg_A(.in(F_INSN_A), .out( D_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
     Nbit_reg #(16, 16'h0000) X_insn_Reg_A(.in(D_INSN_A), .out( X_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) M_insn_Reg_A(.in(X_INSN_A), .out( M_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
@@ -314,8 +292,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) M_PC_ADD_One_Reg_B(.in(X_PC_ADD_ONE_B), .out( M_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
     Nbit_reg #(16, 16'h0000) W_PC_ADD_One_Reg_B(.in(M_PC_ADD_ONE_B), .out( W_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
-
-    
+   
     // ************ R1/R2 registers ************ //    
     Nbit_reg #(16, 16'h0000) X_R1_Reg_A(.in(D_O_RF_R1_A), .out( X_R1_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) X_R2_Reg_A(.in(D_O_RF_R2_A), .out( X_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
@@ -326,13 +303,15 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) M_R2_Reg_B(.in(ALU_in2_B), .out( M_R2_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
 
 
-    // ************ R1/R2_RE registers ************ //  
+    // ************ R1/R2_RE registers ************ //
+    wire X_R1RE_A, X_R2RE_A, X_R1RE_B, X_R2RE_B;
+    wire M_R1RE_A, M_R2RE_A, M_R1RE_B, M_R2RE_B;
+
     Nbit_reg #(1, 1'b0) X_R1RE_Reg_A(.in(R1RE_A), .out( X_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(1, 1'b0) X_R2RE_Reg_A(.in(R2RE_A), .out( X_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(1, 1'b0) M_R1RE_Reg_A(.in(X_R1RE_A), .out( M_R1RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
     Nbit_reg #(1, 1'b0) M_R2RE_Reg_A(.in(X_R2RE_A), .out( M_R2RE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
     
-
     Nbit_reg #(1, 1'b0) X_R1RE_Reg_B(.in(R1RE_B), .out( X_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     Nbit_reg #(1, 1'b0) X_R2RE_Reg_B(.in(R2RE_B), .out( X_R2RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
     Nbit_reg #(1, 1'b0) M_R1RE_Reg_B(.in(X_R1RE_B), .out( M_R1RE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
@@ -375,6 +354,10 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // ************ Rs/Rt/Rd registers ************ // 
+    wire [2:0] X_Rs_A, X_Rt_A, X_Rd_A, X_Rs_B, X_Rt_B, X_Rd_B;
+    wire [2:0] M_Rs_A, M_Rt_A, M_Rd_A, M_Rs_B, M_Rt_B, M_Rd_B;
+    wire [2:0] W_Rd_A,W_Rd_B;   
+
     Nbit_reg #(3, 3'b000) X_Rs_Reg_A(.in(D_Rs_A), .out( X_Rs_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(3, 3'b000) X_Rt_Reg_A(.in(D_Rt_A), .out( X_Rt_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(3, 3'b000) X_Rd_Reg_A(.in(D_Rd_A), .out( X_Rd_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
@@ -428,7 +411,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) W_RF_Data_Reg_B(.in(M_RF_data_B), .out( W_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
     
-    
+
     // ************ Memory-Related registers ************ //
     Nbit_reg #(16, 16'h0000) W_MEM_Reg_A(.in(O_Mem), .out( W_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
     Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(O_Mem), .out( W_Mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
@@ -449,7 +432,6 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(1, 1'b0) X_insn_BR_Reg_B(.in(D_insn_BR_B), .out( X_insn_BR_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
 
     Nbit_reg #(16, 16'h0000) M_INSN_Reg_B(.in(X_INSN_B), .out( M_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_B | rst  ));
-
 
 
     //************ Decoders ************//
