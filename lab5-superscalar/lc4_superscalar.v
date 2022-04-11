@@ -114,7 +114,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire X_R1RE_B;
     wire X_R2RE_B;
     // A
-    wire [15:0] X_PC_A;
     wire [15:0] X_INSN_A;
     wire [15:0] X_PC_ADD_ONE_A;
     wire [15:0] X_R1_A;
@@ -124,7 +123,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0] X_Rd_A;
     wire X_Ctrl_Control_insn_A;
     // B
-    wire [15:0] X_PC_B;
     wire [15:0] X_INSN_B;
     wire [15:0] X_PC_ADD_ONE_B;
     wire [15:0] X_R1_B;
@@ -137,7 +135,6 @@ module lc4_processor(input wire         clk,             // main clock
 
     // wire for M register Wires
     // A
-    wire [15:0] M_PC_A;
     wire [15:0] M_ALU_A;
     wire [15:0] M_R2_A;
 
@@ -154,7 +151,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0] Mem_NZP_Update;
     wire [2:0]  M_Ctrl_NZP_out_A;
     // B
-    wire [15:0] M_PC_B;
     wire [15:0] M_ALU_B;
     wire [15:0] M_R2_B;
 
@@ -184,7 +180,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] W_PC_ADD_ONE_A;
     wire [2:0] W_Rd_A;
     wire [15:0] W_INSN_A;
-    wire [15:0] W_PC_A;
     wire W_Ctrl_Update_NZP_A;
     //B
     wire [15:0] W_ALU_B;
@@ -192,7 +187,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] W_PC_ADD_ONE_B;
     wire [2:0] W_Rd_B;
     wire [15:0] W_INSN_B;
-    wire [15:0] W_PC_B;
     wire W_Ctrl_Update_NZP_B;
 
 
@@ -204,8 +198,8 @@ module lc4_processor(input wire         clk,             // main clock
 
     wire [15:0] PC_ADD_ONE_A, D_PC_ADD_ONE_A;
     wire [15:0] PC_ADD_ONE_B, D_PC_ADD_ONE_B;                   // Wires for CLAs
-    wire [15:0] D_PC_A, D_I_PC_A;
-    wire [15:0] D_PC_B, D_I_PC_B;                               // Wires for Intermediate PC values
+    wire [15:0] D_I_PC_A, D_PC_A, X_PC_A, M_PC_A, W_PC_A;
+    wire [15:0] D_I_PC_B, D_PC_B, X_PC_B, M_PC_B, W_PC_B;                               // Wires for Intermediate PC values
 
     Nbit_reg #(16, 16'h0000) D_PC_Reg_A(.in(D_I_PC_A), .out( D_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) X_PC_Reg_A(.in(D_PC_A), .out( X_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
@@ -247,7 +241,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) W_insn_Reg_B(.in(M_INSN_B), .out( W_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
 
 
-    // pipe line switching
+    // Insn bypass for pipe line switching //s
     assign F_INSN_A = (Pipe_Switch) ? D_INSN_B :
                         (Stall_A) ? D_INSN_A : i_cur_insn_A;
     assign F_INSN_B = (Pipe_Switch) ? i_cur_insn_A :
