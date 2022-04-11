@@ -1,3 +1,7 @@
+// ~~~~~~~~~~~ Team Info ~~~~~~~~~~~ //
+// ~~~~ Tianyi Wu  &&  Zeyu Niu ~~~~ //
+// ~~~~~~  wubill  &&  zyniu  ~~~~~~ //
+
 `timescale 1ns / 1ps
 // Prevent implicit wire declaration
 // `default_nettype none
@@ -38,8 +42,8 @@ module lc4_processor(input wire         clk,             // main clock
                      input  wire [ 7:0] switch_data,         // read on/off status of zedboard's 8 switches
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
-   /***  YOUR CODE HERE ***/
-   // Instruction Registers
+    /***  YOUR CODE HERE ***/
+    // Instruction Registers
     assign led_data = switch_data; 
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
