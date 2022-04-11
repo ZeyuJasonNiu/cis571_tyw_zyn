@@ -81,6 +81,7 @@ module lc4_processor(input wire         clk,             // main clock
                             (W_insn_LDR_B) ? W_Mem_B:
                             16'h0000;  
 
+
     // Define Control Signals
     wire D_Ctrl_W_R7_A, X_Ctrl_W_R7_A, M_Ctrl_W_R7_A, W_Ctrl_W_R7_A;
     wire D_Ctrl_W_R7_B, X_Ctrl_W_R7_B, M_Ctrl_W_R7_B, W_Ctrl_W_R7_B;
@@ -106,10 +107,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire D_insn_STR_A, X_insn_STR_A, M_insn_STR_A, W_insn_STR_A;
     wire D_insn_STR_B, X_insn_STR_B, M_insn_STR_B, W_insn_STR_B;
    
-
-
-    // wire for X register wires
-
     // A
     wire [15:0] X_PC_ADD_ONE_A;
     wire [15:0] X_R1_A;
@@ -125,11 +122,10 @@ module lc4_processor(input wire         clk,             // main clock
     wire X_Ctrl_Control_insn_B;
 
 
-    // wire for M register Wires
+    // wire for M registers
     // A
     wire [15:0] M_ALU_A;
     wire [15:0] M_R2_A;
-
 
     wire M_Stall_A;
 
@@ -140,11 +136,9 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] M_ALU_B;
     wire [15:0] M_R2_B;
 
-
     wire M_Stall_B;
     wire M_Ctrl_Update_NZP_B;
     wire [2:0]  M_Ctrl_NZP_out_B;
-
 
     // wire for W registers
     assign W_Flush_A = 1'b0;
@@ -158,7 +152,6 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] W_ALU_A;
     wire [15:0] W_Mem_A;
     wire [15:0] W_PC_ADD_ONE_A;
-
     wire W_Ctrl_Update_NZP_A;
     //B
     wire [15:0] W_ALU_B;
@@ -603,8 +596,6 @@ module lc4_processor(input wire         clk,             // main clock
                 .i_r2data(ALU_in2_B),
                 .o_result(O_ALU_B));
 
-
-
     assign M_Flush_A = 1'b0;
     assign M_Flush_B = 1'b0;
     assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A;        
@@ -614,34 +605,30 @@ module lc4_processor(input wire         clk,             // main clock
     
     
 
-    // memory
+    //************ Memory Operation and MM Bypass ************//
+    wire WM_Bypass_A, WM_Bypass_B;
+    wire MM_Bypass;
+    
+    wire [15:0] o_dmem_addr_A, o_dmem_addr_B;
+    wire [15:0] W_dmem_addr_A, W_dmem_towrite_A;   
+    wire [15:0] W_dmem_addr_B, W_dmem_towrite_B;
+    wire [15:0] o_dmem_towrite_A, o_dmem_towrite_B;
 
     assign o_dmem_we = M_insn_STR_A | M_insn_STR_B;
-    
-    wire [15:0] o_dmem_addr_A;
-    wire [15:0] o_dmem_addr_B;
-
     assign o_dmem_addr_A = (M_insn_LDR_A | M_insn_STR_A)? M_ALU_A :16'h0000;
     assign o_dmem_addr_B = (M_insn_LDR_B | M_insn_STR_B)? M_ALU_B :16'h0000;
     assign o_dmem_addr = (M_insn_LDR_A | M_insn_STR_A)? o_dmem_addr_A :
                             (M_insn_LDR_B | M_insn_STR_B)? o_dmem_addr_B :    16'h0000; 
-                            
-    wire [15:0] W_dmem_addr_A;
-    wire [15:0] W_dmem_towrite_A;   
-    wire [15:0] W_dmem_addr_B;
-    wire [15:0] W_dmem_towrite_B;   
 
     // MM bypass
     // Passing M_ALU_O from pipe A to B for STR
-    wire MM_Bypass;
+
     assign MM_Bypass = M_insn_STR_B & (M_Rd_B == M_Rd_A);
     // WM bypass
     // no bypassing 2'b00
     // A bypassing 2'b01
     // B bypassing 2'b10
-    wire [15:0] o_dmem_towrite_A;
-    wire [15:0] o_dmem_towrite_B;   
-    wire WM_Bypass_A;
+
     assign WM_Bypass_A = (M_insn_STR_A & W_insn_LDR_A & (M_Rt_A == W_Rd_A))? 2'b01 :
                             (M_insn_STR_A & W_insn_LDR_B & (M_Rt_A == W_Rd_B))? 2'b10 : 2'b00;
 
@@ -650,7 +637,6 @@ module lc4_processor(input wire         clk,             // main clock
                             (M_insn_STR_A) ? M_R2_A:
                             16'h0000;
 
-    wire WM_Bypass_B;
     assign WM_Bypass_B = (M_insn_STR_B & W_insn_LDR_A & (M_Rt_B == W_Rd_A))? 2'b01 :
                             (M_insn_STR_B & W_insn_LDR_B & (M_Rt_B == W_Rd_B))? 2'b10 : 2'b00;
     assign o_dmem_towrite_B = (WM_Bypass_B == 2'b01)? W_RF_IN_data_A:
@@ -765,7 +751,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign D_Flush_B = X_Ctrl_PC_JMP_B;
     assign X_Flush_A = Stall_A | X_Ctrl_PC_JMP_A;
     assign X_Flush_B = Stall_B | X_Ctrl_PC_JMP_B | Pipe_Switch;
-
 
 
    /* Add $display(...) calls in the always block below to
