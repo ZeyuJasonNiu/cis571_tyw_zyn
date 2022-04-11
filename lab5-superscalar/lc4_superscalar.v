@@ -215,17 +215,14 @@ module lc4_processor(input wire         clk,             // main clock
         
         Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_B(.in(PC_ADD_ONE_B), .out( D_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
 
+      
+   
+    //************ Decoders ************//
+    wire [2:0] Rd_A, Rd_B; // raw rd output from decoder; 
+    wire [2:0] D_Rd_A, D_Rd_B; // valid only when RF_WE is enabled; to avoid false WX by pass
+    wire [2:0] D_Rs_A, D_Rt_A, D_Rs_B, D_Rt_B;
+    wire R1RE_A, R2RE_A, R1RE_B, R2RE_B;
 
-    // decoder
-    // TO DO: STALL SITUATIONS
-    // A
-    wire [2:0] Rd_A; // raw rd output from decoder; 
-    wire [2:0] D_Rd_A; // valid only when RF_WE is enabled; to avoid false WX by pass
-    assign D_Rd_A = (D_Ctrl_RF_WE_A)? Rd_A:3'b000;
-    wire [2:0] D_Rs_A;
-    wire [2:0] D_Rt_A;
-    wire R1RE_A;
-    wire R2RE_A;
     lc4_decoder decode_A(.insn(D_INSN_A),               // instruction
                     .r1sel(D_Rs_A),              // rs
                     .r1re(R1RE_A),               // does this instruction read from rs?
@@ -241,14 +238,6 @@ module lc4_processor(input wire         clk,             // main clock
                     .is_control_insn(D_Ctrl_Control_insn_A)     // is this a control instruction (JSR, JSRR, RTI, JMPR, JMP, TRAP)?
                     );
 
-    //B
-    wire [2:0] Rd_B; // raw rd output from decoder; 
-    wire [2:0] D_Rd_B; // valid only when RF_WE is enabled; to avoid false WX by pass
-    assign D_Rd_B = (D_Ctrl_RF_WE_B)? Rd_B:3'b000;
-    wire [2:0] D_Rs_B;
-    wire [2:0] D_Rt_B;
-    wire R1RE_B;
-    wire R2RE_B;
     lc4_decoder decode_B(.insn(D_INSN_B),               // instruction
                     .r1sel(D_Rs_B),              // rs
                     .r1re(R1RE_B),               // does this instruction read from rs?
@@ -264,26 +253,20 @@ module lc4_processor(input wire         clk,             // main clock
                     .is_control_insn(D_Ctrl_Control_insn_B)     // is this a control instruction (JSR, JSRR, RTI, JMPR, JMP, TRAP)?
                     );
 
-    // Regfile
+    assign D_Rd_A = (D_Ctrl_RF_WE_A)? Rd_A:3'b000;
+    assign D_Rd_B = (D_Ctrl_RF_WE_B)? Rd_B:3'b000;
 
-    // A
-    wire [15:0] I_RF_data_A;
-    wire [15:0] X_RF_data_A;
-    wire [15:0] M_RF_data_A;
-    wire [15:0] W_RF_data_A;
-    wire [15:0] D_O_RF_R1_A;
-    wire [15:0] D_O_RF_R2_A;
+
+
+    //************ Superscaler Regfiles ************//
+    wire [15:0] I_RF_data_A, X_RF_data_A, M_RF_data_A, W_RF_data_A;
+    wire [15:0] I_RF_data_B, X_RF_data_B, M_RF_data_B, W_RF_data_B;
+
+    wire [15:0] D_O_RF_R1_A, D_O_RF_R2_A;
+    wire [15:0] D_O_RF_R1_B, D_O_RF_R2_B;
+
     wire [2:0] In_Rd_A;
-    assign In_Rd_A = (W_Ctrl_W_R7_A) ? 3'h7 : W_Rd_A;
-   // B
-    wire [15:0] I_RF_data_B;
-    wire [15:0] X_RF_data_B;
-    wire [15:0] M_RF_data_B;
-    wire [15:0] W_RF_data_B;
-    wire [15:0] D_O_RF_R1_B;
-    wire [15:0] D_O_RF_R2_B;
     wire [2:0] In_Rd_B;
-    assign In_Rd_B = (W_Ctrl_W_R7_B) ? 3'h7 : W_Rd_B;
 
     lc4_regfile_ss #(16) myregfile
     (.clk(clk),
@@ -309,11 +292,15 @@ module lc4_processor(input wire         clk,             // main clock
         .i_rd_we_B(W_Ctrl_RF_WE_B)   // pipe B: write enable
         );
 
+    assign In_Rd_A = (W_Ctrl_W_R7_A) ? 3'h7 : W_Rd_A;
+    assign In_Rd_B = (W_Ctrl_W_R7_B) ? 3'h7 : W_Rd_B;
     assign I_RF_data_A = W_Ctrl_W_R7_A ? W_PC_ADD_ONE_A : W_RF_IN_data_A;
     assign I_RF_data_B = W_Ctrl_W_R7_B ? W_PC_ADD_ONE_B : W_RF_IN_data_B;
 
-   // X registers
-   // A
+
+
+    // X registers
+    // A
     wire [15:0] X_PC_A;
     wire [15:0] X_INSN_A;
     wire [15:0] X_PC_ADD_ONE_A;
@@ -388,32 +375,25 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b000) X_Rd_Reg_B(.in(D_Rd_B), .out( X_Rd_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
 
 
-    // ALU
-    // A
-    wire [2:0] WMX_Bypass_1_A;
-    wire [2:0] WMX_Bypass_2_A;
-    wire [15:0] O_ALU_A;
-    wire [15:0] ALU_in1_A;
-    wire [15:0] ALU_in2_A;  
 
-    // B
-    wire [2:0] WMX_Bypass_1_B;
-    wire [2:0] WMX_Bypass_2_B;
-    wire [15:0] O_ALU_B;
-    wire [15:0] ALU_in1_B;
-    wire [15:0] ALU_in2_B;  
-
-    
-
-    // WMX Bypass 
+    //************ Bypass Classifiers (WMX) ************//
     // No passing: 0b000
     // MX from A: 0b001
     // WX from A: 0b010
     // MX from B: 0b101
     // WX from B: 0b110
-    // A
+
+    // Wires for ALUs
+    wire [2:0] WMX_Bypass_1_A, WMX_Bypass_2_A;
+    wire [15:0] ALU_in1_A, ALU_in2_A;
+    wire [15:0] O_ALU_A;
+
+    wire [2:0] WMX_Bypass_1_B, WMX_Bypass_2_B;
+    wire [15:0] ALU_in1_B, ALU_in2_B;
+    wire [15:0] O_ALU_B;
+
+    // Pipe A
     // input 1 of ALU for A:
-    // preference: MX from B > MX from A > WX from B > WX from A
     assign WMX_Bypass_1_A = ((X_Rs_A == M_Rd_B) & M_Ctrl_RF_WE_B & X_R1RE_A) ? 3'b101 :
                             ((X_Rs_A == M_Rd_A) & M_Ctrl_RF_WE_A & X_R1RE_A) ? 3'b001 :
                             ((X_Rs_A == W_Rd_B) & W_Ctrl_RF_WE_B & X_R1RE_A) ? 3'b110 :
@@ -426,36 +406,21 @@ module lc4_processor(input wire         clk,             // main clock
                             ((X_Rt_A == W_Rd_A) & W_Ctrl_RF_WE_A & X_R1RE_A) ? 3'b010 :
                             3'b000;
 
-    assign ALU_in1_A = (WMX_Bypass_1_A == 3'b000)? X_R1_A:
+    assign ALU_in1_A =  (WMX_Bypass_1_A == 3'b000)? X_R1_A:
                         (WMX_Bypass_1_A == 3'b001)? M_ALU_A:
                         (WMX_Bypass_1_A == 3'b010)? I_RF_data_A:
                         (WMX_Bypass_1_A == 3'b101)? M_ALU_B:
                         (WMX_Bypass_1_A == 3'b110)? I_RF_data_B:
                         16'h0000 ;
 
-    assign ALU_in2_A = (WMX_Bypass_2_A == 3'b000)? X_R2_A:
+    assign ALU_in2_A =  (WMX_Bypass_2_A == 3'b000)? X_R2_A:
                         (WMX_Bypass_2_A == 3'b001)? M_ALU_A:
                         (WMX_Bypass_2_A == 3'b010)? I_RF_data_A:
                         (WMX_Bypass_2_A == 3'b101)? M_ALU_B:
                         (WMX_Bypass_2_A == 3'b110)? I_RF_data_B:
                         16'h0000 ;
 
-    lc4_alu myALU_A(.i_insn(X_INSN_A),
-                .i_pc(X_PC_A),
-                .i_r1data(ALU_in1_A),
-                .i_r2data(ALU_in2_A),
-                .o_result(O_ALU_A));
-
-    wire [15:0] W_RF_IN_data_A;
-    wire [15:0] M_PC_ADD_ONE_A;
-
-    // B
-    // No passing: 0b000
-    // MX from A: 0b001
-    // WX from A: 0b010
-    // MX from B: 0b101
-    // WX from B: 0b110
-    // preference MX from B > MX from A > WX from B > WX from A
+    // Pipe B (Applying Same logic from A)
     assign WMX_Bypass_1_B = ((X_Rs_B == M_Rd_B) & M_Ctrl_RF_WE_B & X_R1RE_B) ? 3'b101 :
                             ((X_Rs_B == M_Rd_A) & M_Ctrl_RF_WE_A & X_R1RE_B) ? 3'b001 :
                             ((X_Rs_B == W_Rd_B) & W_Ctrl_RF_WE_B & X_R1RE_B) ? 3'b110 :
@@ -467,19 +432,33 @@ module lc4_processor(input wire         clk,             // main clock
                             ((X_Rt_B == W_Rd_A) & W_Ctrl_RF_WE_A & X_R1RE_B) ? 3'b010 :
                             3'b000;
 
-    assign ALU_in1_B = (WMX_Bypass_1_B == 3'b000)? X_R1_B:
+    assign ALU_in1_B =  (WMX_Bypass_1_B == 3'b000)? X_R1_B:
                         (WMX_Bypass_1_B == 3'b001)? M_ALU_A:
                         (WMX_Bypass_1_B == 3'b010)? I_RF_data_A:
                         (WMX_Bypass_1_B == 3'b101)? M_ALU_B:
                         (WMX_Bypass_1_B == 3'b110)? I_RF_data_B:
                         16'h0000 ;
 
-    assign ALU_in2_B = (WMX_Bypass_2_B == 3'b000)? X_R2_B:
+    assign ALU_in2_B =  (WMX_Bypass_2_B == 3'b000)? X_R2_B:
                         (WMX_Bypass_2_B == 3'b001)? M_ALU_A:
                         (WMX_Bypass_2_B == 3'b010)? I_RF_data_A:
                         (WMX_Bypass_2_B == 3'b101)? M_ALU_B:
                         (WMX_Bypass_2_B == 3'b110)? I_RF_data_B:
                         16'h0000 ;
+
+    wire [15:0] W_RF_IN_data_A;
+    wire [15:0] M_PC_ADD_ONE_A;
+    wire [15:0] W_RF_IN_data_B;
+    wire [15:0] M_PC_ADD_ONE_B;
+
+
+
+    //************ ALU for Pipe-A and Piep-B ************//
+    lc4_alu myALU_A(.i_insn(X_INSN_A),
+                .i_pc(X_PC_A),
+                .i_r1data(ALU_in1_A),
+                .i_r2data(ALU_in2_A),
+                .o_result(O_ALU_A));
 
     lc4_alu myALU_B(.i_insn(X_INSN_B),
                 .i_pc(X_PC_B),
@@ -487,8 +466,6 @@ module lc4_processor(input wire         clk,             // main clock
                 .i_r2data(ALU_in2_B),
                 .o_result(O_ALU_B));
 
-    wire [15:0] W_RF_IN_data_B;
-    wire [15:0] M_PC_ADD_ONE_B;
 
     // M register
     // A
