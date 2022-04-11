@@ -44,8 +44,9 @@ module lc4_processor(input wire         clk,             // main clock
                      input  wire [ 7:0] switch_data,         // read on/off status of zedboard's 8 switches
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
-    /***  YOUR CODE HERE ***/
-
+    //************************************************************************************//
+    //****************************     LAB-5 CODE BEGINS       ***************************//
+    //************************************************************************************//
     assign led_data = switch_data; 
 
 
@@ -501,6 +502,12 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_data_B =  write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
+
+
+
+    //************************************************************************************//
+    //*****************************     LAB-5 CODE ENDS       ****************************//
+    //************************************************************************************//
 
 
 
