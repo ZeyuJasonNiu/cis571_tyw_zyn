@@ -118,7 +118,7 @@ module lc4_processor(input wire         clk,             // main clock
     // ************************ Stall Registers ************************ //
     wire [1:0]  d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
     wire [1:0]  d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_i_B, m_stall_o_B;
-    wire stall_ A, stall_B;
+    wire stall_A, stall_B;
 
     Nbit_reg #(2, 2'b10) d_stall_reg_A (.in(d_stall_i_A), .out(d_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_br_taken_or_ctrl_A));
     Nbit_reg #(2, 2'b10) x_stall_reg_A (.in(x_stall_i_A), .out(x_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_br_taken_or_ctrl_A));
