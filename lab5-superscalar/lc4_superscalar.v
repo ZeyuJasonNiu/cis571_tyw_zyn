@@ -123,12 +123,12 @@ module lc4_processor(input wire         clk,             // main clock
 
     // assign x_stall_i_A = (LTU_A == 1) ? 2'd3 : 
     //                       d_stall_o_A;
-    assign x_stall_i_A_final = (d2x_bus_A[15:0] != 16'h0000) ? x_stall_i_A : 2'd2;
+    assign x_stall_i_A_final = ((d2x_pc_A == 16'h0000) || (d2x_bus_A[15:0] != 16'h0000)) ? 2'b10 : d_stall_i_A;
 
     // assign x_stall_i_B = (LTU_A == 1 || B_need_A || mem_hazard) ? 2'd1 :
     //                      (LTU_B == 1) ? 2'd3 :
     //                      d_stall_o_B;
-    assign x_stall_i_B_final = (d2x_bus_B[15:0] != 16'h0000) ? x_stall_i_B : 2'd2;
+    assign x_stall_i_B_final = ((d2x_pc_B == 16'h0000) || (d2x_bus_B[15:0] != 16'h0000)) ? 2'b10 : d_stall_i_B;
     
     // PC Registers
     wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
