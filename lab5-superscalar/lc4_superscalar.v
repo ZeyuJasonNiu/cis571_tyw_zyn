@@ -586,11 +586,8 @@ module lc4_processor(input wire         clk,             // main clock
                         (WMX_Bypass_2_B == 3'b110)? I_RF_data_B:
                         16'h0000 ;
 
-    wire [15:0] W_RF_IN_data_A;
-    wire [15:0] M_PC_ADD_ONE_A;
-    wire [15:0] W_RF_IN_data_B;
-    wire [15:0] M_PC_ADD_ONE_B;
-
+    wire [15:0] W_RF_IN_data_A, W_RF_IN_data_B;
+    wire [15:0] M_PC_ADD_ONE_A, M_PC_ADD_ONE_B;
 
 
     //************ ALU for Pipe-A and Piep-B ************//
@@ -670,25 +667,22 @@ module lc4_processor(input wire         clk,             // main clock
 
     //************ NZP Register and NZP update ************//
     // Ctrl_NZP are the new nzp bits
+    wire signed [15:0] NZP_Data_A, NZP_Data_B;
+
     wire [2:0] Ctrl_NZP_A, M_Ctrl_NZP_A, W_Ctrl_NZP_A, NZP_A;    
     wire [2:0] Ctrl_NZP_B, M_Ctrl_NZP_B, W_Ctrl_NZP_B, NZP_B;
-
-    wire X_NZP_WE_A;
-    wire X_NZP_WE_B; 
-
-    wire signed [15:0] NZP_Data_A;
-    wire signed [15:0] NZP_Data_B;
+    wire X_NZP_WE_A, X_NZP_WE_B;
 
     Nbit_reg #(3, 3'b000) nzp_reg_A (.in(Ctrl_NZP_A), .out(NZP_A), .clk(clk), .we(X_NZP_WE_A), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b000) nzp_reg_B (.in(Ctrl_NZP_B), .out(NZP_B), .clk(clk), .we(X_NZP_WE_B), .gwe(gwe), .rst(rst));
-
+    //Piep A
     assign X_NZP_WE_A = X_Ctrl_Update_NZP_A |  M_Stall_A;
     assign Ctrl_NZP_A[2] = (NZP_Data_A[15] == 1'b1)? 1'b1 : 1'b0; // N
     assign Ctrl_NZP_A[1] = (NZP_Data_A == 16'h0000)? 1'b1 : 1'b0; // Z
     assign Ctrl_NZP_A[0] = (NZP_Data_A > $signed(16'h0000))? 1'b1 : 1'b0;   // P
     assign NZP_Data_A = M_Stall_A ? O_Mem : 
                     X_Ctrl_W_R7_A ? X_PC_ADD_ONE_A : O_ALU_A;
-
+    //Pipe B
     assign X_NZP_WE_B = X_Ctrl_Update_NZP_B |  M_Stall_B;
     assign Ctrl_NZP_B[2] = (NZP_Data_B[15] == 1'b1)? 1'b1 : 1'b0; // N
     assign Ctrl_NZP_B[1] = (NZP_Data_B == 16'h0000)? 1'b1 : 1'b0; // Z
@@ -783,8 +777,6 @@ module lc4_processor(input wire         clk,             // main clock
     * You do not need to resynthesize and re-implement if this is all you change;
     * just restart the simulation.
     */
-
-
 
 
 
