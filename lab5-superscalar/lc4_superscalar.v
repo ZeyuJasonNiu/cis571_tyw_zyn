@@ -94,7 +94,7 @@ module lc4_processor(input wire         clk,             // main clock
     // Pipe X.A /B IS A LDR, which is used by a following BR insns D.A
     wire LTBr_A, LTBr_B;
     assign LTBr_A = d2x_bus_A[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);
-    assign LTBr_B = d2x_bus_B[17] && ((X_insn_LDR_A & ~X_Ctrl_Update_NZP_B ) | X_insn_LDR_B);  
+    assign LTBr_B = d2x_bus_B[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);  
    
 
     // Stall Registers
