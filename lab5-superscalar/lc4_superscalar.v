@@ -114,7 +114,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign  B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24]) || 
                         (d2x_bus_A[27:25] == d2x_bus_B[30:28] && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                        (d2x_bus_A[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
+                        (d2x_bus_B[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
 
     assign  mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);           // Case4: Both A & B are dmem instrucitons
 
