@@ -180,10 +180,10 @@ module lc4_processor(input wire         clk,             // main clock
    //wire [15:0] D_I_INSN_B;
 
 
-
     // ************ PC registers ************ //
     // Program counter register, starts at 8200h at bootup
     Nbit_reg #(16, 16'h8200) pc_reg (.in(next_pc), .out(pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
     Nbit_reg #(16, 16'h0000) D_PC_Reg_A(.in(D_I_PC_A), .out( D_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) X_PC_Reg_A(.in(D_PC_A), .out( X_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
     Nbit_reg #(16, 16'h0000) M_PC_Reg_A(.in(X_PC_A), .out( M_PC_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_A | rst ));
@@ -194,20 +194,25 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'h0000) M_PC_Reg_B(.in(X_PC_B), .out( M_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( M_Flush_B | rst ));
     Nbit_reg #(16, 16'h0000) W_PC_Reg_B(.in(M_PC_B), .out( W_PC_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_B ));
     
-    assign D_I_PC_A = (Pipe_Switch) ? D_PC_B :
-                        (Stall_A) ? D_PC_A : pc;
+    assign D_I_PC_A = (Pipe_Switch) ? D_PC_B : (Stall_A) ? D_PC_A : pc;
+    assign D_I_PC_B = (Pipe_Switch) ? pc :(Stall_B) ? D_PC_B : PC_ADD_ONE_A;
 
-    assign D_I_PC_B = (Pipe_Switch) ? pc :
-                        (Stall_B) ? D_PC_B : PC_ADD_ONE_A;
 
     // ************ Instruction registers ************ //                    
     Nbit_reg #(16, 16'h0000) D_insn_Reg_A(.in(F_INSN_A), .out( D_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
     Nbit_reg #(16, 16'h0000) X_insn_Reg_A(.in(D_INSN_A), .out( X_INSN_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_A | rst ));
-  
+    
+    Nbit_reg #(16, 16'h0000) D_insn_Reg_B(.in(F_INSN_B), .out( D_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
+    Nbit_reg #(16, 16'h0000) X_insn_Reg_B(.in(D_INSN_B), .out( X_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
+
+
+
+
+
+
     Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_A(.in(PC_ADD_ONE_A), .out( D_PC_ADD_ONE_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_A | rst  ));
     // B
-    Nbit_reg #(16, 16'h0000) D_insn_Reg_B(.in(F_INSN_B), .out( D_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
-
+    
     Nbit_reg #(16, 16'h0000) D_PC_ADD_ONE_Reg_B(.in(PC_ADD_ONE_B), .out( D_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( D_Flush_B | rst  ));
 
 
@@ -356,7 +361,6 @@ module lc4_processor(input wire         clk,             // main clock
    wire [2:0] X_Rd_B;
    wire X_Ctrl_Control_insn_B;
 
-   Nbit_reg #(16, 16'h0000) X_insn_Reg_B(.in(D_INSN_B), .out( X_INSN_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
    Nbit_reg #(16, 16'h0000) X_PC_ADD_One_Reg_B(.in(D_PC_ADD_ONE_B), .out( X_PC_ADD_ONE_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
    
    Nbit_reg #(16, 16'h0000) X_RF_Data_Reg_B(.in(I_RF_data_B), .out( X_RF_data_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( X_Flush_B | rst ));
@@ -914,6 +918,13 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
+        if ($time >= 600 && $time <=1200) begin
+        $display("=============================================");
+        $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n \n ", 
+                $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
+        $display("test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n \n", 
+                test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, O_ALU_A, O_ALU_B);
+       end
       // $display("%d test_regfile_data: %h W_ALU: %h", $time, test_regfile_data, W_ALU);
       // $display(" W_RF_IN_data: %h", W_RF_IN_data);
       // $display(" W_insn_LDR: %h", W_insn_LDR);
