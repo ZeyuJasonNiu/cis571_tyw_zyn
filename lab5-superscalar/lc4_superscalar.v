@@ -1,3 +1,7 @@
+//~~~~~~TEAM INFO~~~~~~//
+//Zeyu Niu && Tianyi Wu//
+// zyniu   &&  wubill  //
+
 `timescale 1ns / 1ps
 
 // Prevent implicit wire declaration
