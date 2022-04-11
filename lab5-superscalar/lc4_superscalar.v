@@ -784,7 +784,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign A_LTU_dependence = ((X_insn_LDR_A & (((D_Rs_A == X_Rd_A) & R1RE_A) | ((D_Rt_A == X_Rd_A) & !D_insn_STR_A &R2RE_A)) ) 
                             & (X_Rd_A != X_Rd_B))                          // Nullified
                             | ((X_insn_LDR_A & (((D_Rs_B == X_Rd_A) & R1RE_B) | ((D_Rt_B == X_Rd_A) & !D_insn_STR_B &R2RE_B)) ) 
-                            & (X_Rd_A != X_Rd_B) & (X_Rd_A != D_Rd_A) )          // Nullified                            ; 
+                            & (X_Rd_A != X_Rd_B) & (X_Rd_A != D_Rd_A) );          // Nullified                            ; 
     // 2. B LTU DX dependence; from A or B
     assign B_LTU_dependence = (X_insn_LDR_B & (((D_Rs_A == X_Rd_B) & R1RE_A) | ((D_Rt_A == X_Rd_B) & !D_insn_STR_A &R2RE_A)) )
                             | ((X_insn_LDR_B & (((D_Rs_B == X_Rd_B) & R1RE_B) | ((D_Rt_B == X_Rd_B) & !D_insn_STR_B &R2RE_B)) ) 
