@@ -351,7 +351,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign o_dmem_addr =    ((m2w_bus_A[19]) || (m2w_bus_A[18])) ? test_dmem_addr_A :
                             ((m2w_bus_B[19]) || (m2w_bus_B[18])) ? test_dmem_addr_B : 
                             16'b0000; 
-    assign o_dmem_addr = test_dmem_addr_A | test_dmem_addr_B; 
+    // assign o_dmem_addr = test_dmem_addr_A | test_dmem_addr_B; 
     
     // assign i_cur_dmem_data_A = test_dmem_addr_A ? i_cur_dmem_data : 16'b0; 
     // assign i_cur_dmem_data_B = test_dmem_addr_B ? i_cur_dmem_data : 16'b0;    
