@@ -539,10 +539,11 @@ module lc4_processor(input wire         clk,             // main clock
                 d_stall_i_A, d_stall_i_B, test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
         $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
         $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
-        $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
-        $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
+        //$display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
+        //$display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
         $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
         $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
+        $display("INSTR_B: test_dmem_we_A: %h , test_dmem_data_A: %h , test_dmem_addr_A: %h ,test_dmem_data_B: %h , test_dmem_addr_B: %h \n", test_dmem_we_A, ,test_dmem_data_A, test_dmem_addr_A, test_dmem_data_B, test_dmem_addr_B);
         $display("~~~~~~~~~~~~~~~~~~~~~Errors From Test Bench~~~~~~~~~~~~~~~~~~~~ \n");
        end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
