@@ -339,12 +339,21 @@ module lc4_processor(input wire         clk,             // main clock
     // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
     // assign test_dmem_we_A = m2w_bus_A[18];
     // assign test_dmem_we_B = m2w_bus_B[18];
+
     assign test_dmem_we_A = w_o_bus_A[18];
     assign test_dmem_we_B = w_o_bus_B[18];
+
     assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
+
     assign test_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
     assign test_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
-    assign o_dmem_addr = test_dmem_addr_A | test_dmem_addr_B; 
+
+    // assign o_dmem_addr = test_dmem_addr_A | test_dmem_addr_B; 
+    assign o_dmem_addr =    ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? test_dmem_addr_A :
+                            ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? test_dmem_addr_B :
+                            16'b0;
+
+
     // assign i_cur_dmem_data_A = test_dmem_addr_A ? i_cur_dmem_data : 16'b0; 
     // assign i_cur_dmem_data_B = test_dmem_addr_B ? i_cur_dmem_data : 16'b0;    
     assign test_dmem_data_A = (m2w_bus_A[19] == 1) ? i_cur_dmem_data :
