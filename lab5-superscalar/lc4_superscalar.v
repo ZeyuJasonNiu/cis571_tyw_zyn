@@ -310,7 +310,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_rd_A(w_o_bus_A[27:25]),
         .i_wdata_A(write_back_A),
         .i_rd_we_A(w_o_bus_A[22]),
-        
+
         .i_rd_B(w_o_bus_B[27:25]),
         .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22])
@@ -340,20 +340,29 @@ module lc4_processor(input wire         clk,             // main clock
 
     
     // ************************ Dmem-related Situations ************************//
-    Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(o_dmem_result), .out( w_o_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(o_dmem_result), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    // Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(o_dmem_result), .out( w_o_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    // Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(o_dmem_result), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( w_o_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( w_o_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_A(.in(o_dmem_towrite_A), .out( w_o_dmem_towrite_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_B(.in(o_dmem_towrite_B), .out( w_o_dmem_towrite_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
 
     // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
-    // assign test_dmem_we_A = m2w_bus_A[18];
-    // assign test_dmem_we_B = m2w_bus_B[18];
+    // assign test_dmem_we_A = w_o_bus_A[18];
+    // assign test_dmem_we_B = w_o_bus_B[18];
 
     assign test_dmem_we_A = m2w_bus_A[18];
     assign test_dmem_we_B = m2w_bus_B[18];
 
     assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
 
-    assign test_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
-    assign test_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
+    // assign test_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
+    // assign test_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
+    assign o_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
+    assign o_dmem_addr_A = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
+
+    assign test_dmem_addr_A = w_o_dmem_addr_A;
+    assign test_dmem_addr_B = w_o_dmem_addr_B;
 
     // assign o_dmem_addr =    ((m2w_bus_A[19]) || (m2w_bus_A[18])) ? test_dmem_addr_A :
     //                         ((m2w_bus_B[19]) || (m2w_bus_B[18])) ? test_dmem_addr_B : 
