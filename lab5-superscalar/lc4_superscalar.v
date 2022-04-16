@@ -410,6 +410,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     //Pipe-A//
     assign w_nzp_i_A = (m2w_bus_A[19]) ? nzp_ld_A : m_nzp_o_A;
+
     assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
                        (o_alu_result_A == 0) ? 3'b010 : 
                        3'b100;
@@ -443,6 +444,8 @@ module lc4_processor(input wire         clk,             // main clock
 
     // To Check3: test_dmem_data_A/B: 结果未分类，但尝试更改分类，加了alu register，error都没变
 
+    // To do: update w_nzp_i_A, w_nzp_i_B, (wuji '605, '683)
+
     // ************************ Branch Prediction ************************ //
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
@@ -471,7 +474,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
     assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
     // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
-
 
 
     
