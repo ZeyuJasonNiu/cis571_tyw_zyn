@@ -153,13 +153,16 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // ************************ Flush Logics ************************ //
-    wire    d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
+    wire    d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_A, m_flush_B, w_flush_A, w_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
     assign d_flush_B = x_br_taken_or_ctrl_B | x_br_taken_or_ctrl_A;
     assign x_flush_A = stall_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
     assign x_flush_B = stall_B | x_br_taken_or_ctrl_B | pipe_switch | x_br_taken_or_ctrl_A;
+    assign m_flush_A = 1'b0;
     assign m_flush_B = x_br_taken_or_ctrl_A;
+    assign w_flush_A = 1'b0;
+    assign w_flush_B = 1'b0;
    
 
 
@@ -313,10 +316,10 @@ module lc4_processor(input wire         clk,             // main clock
         .o_result(o_alu_result_B)
         );
 
-    Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(o_alu_result_A), .out( m_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(m_alu_A), .out( w_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
-    Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(o_alu_result_B), .out( m_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) W_ALU_Reg_B(.in(m_alu_B), .out( w_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) m_alu_Reg_A(.in(o_alu_result_A), .out( m_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  m_flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) w_alu_Reg_A(.in(m_alu_A), .out( w_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( w_flush_A ));
+    Nbit_reg #(16, 16'h0000) m_alu_Reg_B(.in(o_alu_result_B), .out( m_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  m_flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) w_alu_Reg_B(.in(m_alu_B), .out( w_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( w_flush_B ));
 
 
 
