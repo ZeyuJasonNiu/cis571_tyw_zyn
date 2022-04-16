@@ -425,7 +425,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     //Pipe-A//
-    assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
+    assign w_nzp_i_A = (m2w_bus_A[19]) ? nzp_ld_A : m_nzp_o_A;
     assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
                        (o_alu_result_A == 0) ? 3'b010 : 
                        3'b100;
@@ -439,7 +439,7 @@ module lc4_processor(input wire         clk,             // main clock
                                     ((m2w_bus_A[19] == 1) && (x_stall_o_A == 2'd3)) ? nzp_ld_A : 
                                     nzp_alu_A;
     //Pipe-B//
-    assign w_nzp_i_B = ((m2w_bus_B[19]==1)) ? nzp_ld_B : m_nzp_o_B;
+    assign w_nzp_i_B = (m2w_bus_B[19]) ? nzp_ld_B : m_nzp_o_B;
     assign nzp_alu_B = ($signed(o_alu_result_B) > 0) ? 3'b001 : 
                        (o_alu_result_B == 0) ? 3'b010 : 
                        3'b100;
@@ -452,6 +452,13 @@ module lc4_processor(input wire         clk,             // main clock
     assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
                                     ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
                                     nzp_alu_B;
+
+    // To Check1: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
+
+    // To Check2: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
+
+    // To Check3: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
+    
 
 
     
