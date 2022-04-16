@@ -341,6 +341,7 @@ module lc4_processor(input wire         clk,             // main clock
     
     // ************************ Dmem-related Situations ************************//
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_o_dmem_addr_A, w_o_dmem_addr_B;
+    wire [15:0] o_dmem_towrite_A ,o_dmem_towrite_B, w_o_dmem_towrite_A, w_o_dmem_towrite_B;
     // Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(o_dmem_result), .out( w_o_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
     // Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(o_dmem_result), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
     Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( w_o_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
@@ -372,10 +373,16 @@ module lc4_processor(input wire         clk,             // main clock
     
     // assign i_cur_dmem_data_A = test_dmem_addr_A ? i_cur_dmem_data : 16'b0; 
     // assign i_cur_dmem_data_B = test_dmem_addr_B ? i_cur_dmem_data : 16'b0;    
-    assign test_dmem_data_A = (m2w_bus_A[19] == 1) ? i_cur_dmem_data :
-                              (m2w_bus_A[18] == 1) ? wm_bypass_res_A : 16'b0; 
-    assign test_dmem_data_B = (m2w_bus_B[19] == 1) ? i_cur_dmem_data :
-                              (m2w_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;    
+    // assign test_dmem_data_A = (m2w_bus_A[19] == 1) ? i_cur_dmem_data :
+    //                           (m2w_bus_A[18] == 1) ? wm_bypass_res_A : 16'b0; 
+    // assign test_dmem_data_B = (m2w_bus_B[19] == 1) ? i_cur_dmem_data :
+    //                           (m2w_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;
+    
+    assign test_dmem_data_A = (w_o_bus_A[19] == 1) ? i_cur_dmem_data :
+                              (w_o_bus_A[18] == 1) ? wm_bypass_res_A : 16'b0; 
+    assign test_dmem_data_B = (w_o_bus_B[19] == 1) ? i_cur_dmem_data :
+                              (w_o_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;  
+
     
 
 
