@@ -294,6 +294,8 @@ module lc4_processor(input wire         clk,             // main clock
 
     // ************************ Superscaler ALUs ************************ // 
     wire [15:0] o_alu_result_A, o_alu_result_B;
+    wire [1:50] m_alu_A, m_alu_B w_alu_A, w_alu_B,
+
 
     lc4_alu ALU_Pipe_A( 
         .i_insn(x2m_bus_A[15:0]),
@@ -310,6 +312,12 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B)
         );
+
+    Nbit_reg #(16, 16'h0000) M_ALU_Reg_A(.in(o_alu_result_A), .out( m_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) W_ALU_Reg_A(.in(m_alu_A), .out( w_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+    Nbit_reg #(16, 16'h0000) M_ALU_Reg_B(.in(o_alu_result_B), .out( m_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) W_ALU_Reg_B(.in(m_alu_B), .out( w_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( W_Flush_A ));
+
 
 
     
@@ -428,7 +436,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     // To Check2: write_back_A/B -> (Wuji'151/511/639: W_RF_IN_data_A/B),  改regfile的writeback写回后错误更多
 
-    // To Check3: test_dmem_data_A/B: 结果未分类，大概率是这里的问题
+    // To Check3: test_dmem_data_A/B: 结果未分类，但尝试更改后error没变
 
     // ************************ Branch Prediction ************************ //
     wire [2:0] is_all_zero_A, is_all_zero_B;
@@ -547,8 +555,8 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_wsel_B = w_o_bus_B[27:25];
     // assign test_regfile_data_A =  write_back_A;
     // assign test_regfile_data_B =  write_back_B;
-    assign test_regfile_data_A = (w_o_bus_A[19]) ? w_o_mem_A : write_back_A;
-    assign test_regfile_data_B = (w_o_bus_B[19]) ? w_o_mem_B : write_back_B;
+    assign test_regfile_data_A = (w_o_bus_A[19]) ? w_o_mem_A : w_alu_A;
+    assign test_regfile_data_B = (w_o_bus_B[19]) ? w_o_mem_B : w_alu_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
 
