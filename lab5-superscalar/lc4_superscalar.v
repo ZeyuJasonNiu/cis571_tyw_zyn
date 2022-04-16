@@ -314,6 +314,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     
     // ************************ Dmem-related Situations ************************//
+    wire [15:0] w_o_mem_A, w_o_mem_B;
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_o_dmem_addr_A, w_o_dmem_addr_B;
     wire [15:0] o_dmem_towrite_A ,o_dmem_towrite_B, w_o_dmem_towrite_A, w_o_dmem_towrite_B;
     Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(i_cur_dmem_data), .out( w_o_mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
