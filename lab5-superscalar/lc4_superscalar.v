@@ -264,8 +264,8 @@ module lc4_processor(input wire         clk,             // main clock
 
 
     // ************************ Superscaler Regfile ************************ //
-    wire [2:0]  rd_sel_A, rd_sel_B ; 
-    wire [15:0] w_data_A, w_data_B;
+    // wire [2:0]  rd_sel_A, rd_sel_B ; 
+    // wire [15:0] w_data_A, w_data_B;
     lc4_regfile_ss Superscaler_Regfile(
         .clk(clk),
         .gwe(gwe),
@@ -281,21 +281,21 @@ module lc4_processor(input wire         clk,             // main clock
         .o_rs_data_B(o_regfile_rs_B),
         .o_rt_data_B(o_regfile_rt_B),
 
-        .i_rd_A(rd_sel_A),
-        .i_wdata_A(w_data_A),
+        .i_rd_A(w_o_bus_A[27:25]),
+        .i_wdata_A(write_back_A),
         .i_rd_we_A(w_o_bus_A[22]),
 
-        .i_rd_B(rd_sel_B),
-        .i_wdata_B(w_data_B),
+        .i_rd_B(w_o_bus_B[27:25]),
+        .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22])
         );
 
-    assign rd_sel_A = w_o_bus_A[20] ? 3'h7 : w_o_bus_A[27:25];
-    assign rd_sel_B = w_o_bus_A[20] ? 3'h7  : w_o_bus_B[27:25];    
-    assign w_data_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
-    assign w_data_B = w_o_bus_B[20] ? w_o_pc_B : write_back_B;
+    // assign rd_sel_A = w_o_bus_A[20] ? 3'h7 : w_o_bus_A[27:25];
+    // assign rd_sel_B = w_o_bus_A[20] ? 3'h7  : w_o_bus_B[27:25];    
+    // assign w_data_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
+    // assign w_data_B = w_o_bus_B[20] ? w_o_pc_B : write_back_B;
 
-
+    
 
     // ************************ Superscaler ALUs ************************ // 
     wire [15:0] o_alu_result_A, o_alu_result_B;
