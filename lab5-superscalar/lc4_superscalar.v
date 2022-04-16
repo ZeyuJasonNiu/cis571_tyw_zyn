@@ -349,11 +349,11 @@ module lc4_processor(input wire         clk,             // main clock
     // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_B(.in(o_dmem_towrite_B), .out( w_o_dmem_towrite_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
 
     // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
-    // assign test_dmem_we_A = w_o_bus_A[18];
-    // assign test_dmem_we_B = w_o_bus_B[18];
+    assign test_dmem_we_A = w_o_bus_A[18];
+    assign test_dmem_we_B = w_o_bus_B[18];
 
-    assign test_dmem_we_A = m2w_bus_A[18];
-    assign test_dmem_we_B = m2w_bus_B[18];
+    // assign test_dmem_we_A = m2w_bus_A[18];
+    // assign test_dmem_we_B = m2w_bus_B[18];
 
     assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
 
