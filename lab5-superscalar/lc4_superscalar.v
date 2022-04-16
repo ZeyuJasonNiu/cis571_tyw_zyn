@@ -440,9 +440,9 @@ module lc4_processor(input wire         clk,             // main clock
 
     // To Check1: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
 
-    // To Check2: write_back_A/B -> (Wuji'151/511/639: W_RF_IN_data_A/B),  改regfile的writeback写回后错误更多
+    // To Check2: write_back_A/B -> (Wuji'151/511/639: W_RF_IN_data_A/B),  改regfile的writeback和rd_sel后错误更多
 
-    // To Check3: test_dmem_data_A/B: 结果未分类，但尝试更改分类，加了alu register，error都没变
+    // To Check3: test_dmem_data_A/B: 结果没分类，但尝试更改分类/加了alu register，error都没变
 
     // To do: update w_nzp_i_A, w_nzp_i_B, (wuji '605, '683)
 
