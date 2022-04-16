@@ -296,17 +296,21 @@ module lc4_processor(input wire         clk,             // main clock
         .clk(clk),
         .gwe(gwe),
         .rst(rst),
+
         .i_rs_A(d2x_bus_A[33:31]),
         .i_rt_A(d2x_bus_A[30:28]),
         .o_rs_data_A(o_regfile_rs_A),
         .o_rt_data_A(o_regfile_rt_A),
+
         .i_rs_B(d2x_bus_B[33:31]),
         .i_rt_B(d2x_bus_B[30:28]),
         .o_rs_data_B(o_regfile_rs_B),
         .o_rt_data_B(o_regfile_rt_B),
+
         .i_rd_A(w_o_bus_A[27:25]),
         .i_wdata_A(write_back_A),
         .i_rd_we_A(w_o_bus_A[22]),
+        
         .i_rd_B(w_o_bus_B[27:25]),
         .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22])
@@ -336,6 +340,9 @@ module lc4_processor(input wire         clk,             // main clock
 
     
     // ************************ Dmem-related Situations ************************//
+    Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(o_dmem_result), .out( w_o_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(o_dmem_result), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+
     // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
     // assign test_dmem_we_A = m2w_bus_A[18];
     // assign test_dmem_we_B = m2w_bus_B[18];
@@ -390,6 +397,7 @@ module lc4_processor(input wire         clk,             // main clock
                i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
     wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
                nzp_alu_B, nzp_ld_B, nzp_trap_B;
+
     Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
