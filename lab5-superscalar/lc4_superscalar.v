@@ -308,15 +308,16 @@ module lc4_processor(input wire         clk,             // main clock
         .o_rt_data_B(o_regfile_rt_B),
 
         .i_rd_A(w_o_bus_A[27:25]),
-        .i_wdata_A(write_back_A),
+        .i_wdata_A(w_data_A),
         .i_rd_we_A(w_o_bus_A[22]),
 
         .i_rd_B(w_o_bus_B[27:25]),
-        .i_wdata_B(write_back_B),
+        .i_wdata_B(w_data_B),
         .i_rd_we_B(w_o_bus_B[22])
         );
 
-
+    assign wdata_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
+    assign wdata_B = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
 
     // ************************ Superscaler ALUs ************************ // 
     wire [15:0] o_alu_result_A, o_alu_result_B;
