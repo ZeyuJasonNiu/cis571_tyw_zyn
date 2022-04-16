@@ -183,37 +183,6 @@ module lc4_processor(input wire         clk,             // main clock
 
 
 
-    // ************************ Branch Prediction ************************ //
-    wire [2:0] is_all_zero_A, is_all_zero_B;
-    wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
-
-    assign is_all_zero_A = o_nzp_reg_val_A & x2m_bus_A[11:9];
-    assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
-    assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
-
-    assign next_pc_A =  x_br_taken_or_ctrl_A ? o_alu_result_A :
-                        x_br_taken_or_ctrl_B ? o_alu_result_B : 
-                        stall_A ? f2d_pc_A :
-                        pipe_switch ? f2d_pc_plus_one_A :
-                        f2d_pc_plus_two_A;
-    
-    assign d_i_pc_A = (pipe_switch) ? d2x_pc_B :  
-                      stall_A ? d2x_pc_A :
-                      f2d_pc_A;
-    assign d_i_pc_B = (pipe_switch) ? f2d_pc_A :  
-                      stall_B ? d2x_pc_B :
-                      f2d_pc_plus_one_A;
-
-    assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
-    assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
-    assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
-    
-    assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
-    assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
-    // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
-
-
-
     // ************************ A, B, O, D Registers ************************ //
     wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
                 m_B_o_A, m_O_i_A, m_O_o_A, 
@@ -347,8 +316,9 @@ module lc4_processor(input wire         clk,             // main clock
     // ************************ Dmem-related Situations ************************//
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_o_dmem_addr_A, w_o_dmem_addr_B;
     wire [15:0] o_dmem_towrite_A ,o_dmem_towrite_B, w_o_dmem_towrite_A, w_o_dmem_towrite_B;
-    // Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(o_dmem_result), .out( w_o_Mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    // Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(o_dmem_result), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(i_cur_dmem_data), .out( w_o_mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(i_cur_dmem_data), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
+
     Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( w_o_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
     Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( w_o_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
     // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_A(.in(o_dmem_towrite_A), .out( w_o_dmem_towrite_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
@@ -455,10 +425,39 @@ module lc4_processor(input wire         clk,             // main clock
 
     // To Check1: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
 
-    // To Check2: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
+    // To Check2: write_back_A/B -> (Wuji'151/511/639: W_RF_IN_data_A/B),  改regfile的writeback写回后错误更多
 
-    // To Check3: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
+    // To Check3: test_dmem_data_A/B: 结果未分类，大概率是这里的问题
+
+    // ************************ Branch Prediction ************************ //
+    wire [2:0] is_all_zero_A, is_all_zero_B;
+    wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
+
+    assign is_all_zero_A = o_nzp_reg_val_A & x2m_bus_A[11:9];
+    assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
+    assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
+
+    assign next_pc_A =  x_br_taken_or_ctrl_A ? o_alu_result_A :
+                        x_br_taken_or_ctrl_B ? o_alu_result_B : 
+                        stall_A ? f2d_pc_A :
+                        pipe_switch ? f2d_pc_plus_one_A :
+                        f2d_pc_plus_two_A;
     
+    assign d_i_pc_A = (pipe_switch) ? d2x_pc_B :  
+                      stall_A ? d2x_pc_A :
+                      f2d_pc_A;
+    assign d_i_pc_B = (pipe_switch) ? f2d_pc_A :  
+                      stall_B ? d2x_pc_B :
+                      f2d_pc_plus_one_A;
+
+    assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
+    assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
+    assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
+    
+    assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
+    assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
+    // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
+
 
 
     
@@ -545,8 +544,10 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_we_B = w_o_bus_B[22];
     assign test_regfile_wsel_A = w_o_bus_A[27:25];
     assign test_regfile_wsel_B = w_o_bus_B[27:25];
-    assign test_regfile_data_A =  write_back_A;
-    assign test_regfile_data_B =  write_back_B;
+    // assign test_regfile_data_A =  write_back_A;
+    // assign test_regfile_data_B =  write_back_B;
+    assign test_regfile_data_A = (w_o_bus_A[19]) ? w_o_mem_A : write_back_A;
+    assign test_regfile_data_B = (w_o_bus_B[19]) ? w_o_mem_B : write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
 
