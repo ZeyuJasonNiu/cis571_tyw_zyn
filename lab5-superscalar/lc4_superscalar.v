@@ -294,7 +294,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     // ************************ Superscaler ALUs ************************ // 
     wire [15:0] o_alu_result_A, o_alu_result_B;
-    wire [15:0] m_alu_A, m_alu_B w_alu_A, w_alu_B;
+    wire [15:0] m_alu_A, m_alu_B, w_alu_A, w_alu_B;
 
 
     lc4_alu ALU_Pipe_A( 
