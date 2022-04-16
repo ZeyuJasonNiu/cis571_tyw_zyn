@@ -292,8 +292,8 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign rd_sel_A = w_o_bus_A[20] ? 3'h7 : w_o_bus_A[27:25];
     assign rd_sel_B = w_o_bus_A[20] ? 3'h7  : w_o_bus_B[27:25];    
-    assign wdata_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
-    assign wdata_B = w_o_bus_B[20] ? w_o_pc_B : write_back_B;
+    assign w_data_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
+    assign w_data_B = w_o_bus_B[20] ? w_o_pc_B : write_back_B;
 
 
 
