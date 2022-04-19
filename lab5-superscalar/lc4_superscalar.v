@@ -162,7 +162,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
 
-    assign is_all_zero_A = o_nzp_reg_val_A & x2m_bus_A[11:9];
+    assign is_all_zero_A = o_nzp_used & x2m_bus_A[11:9];
     assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = (branch_taken_A & x2m_bus_A[17]) || x2m_bus_A[16];
 
@@ -179,7 +179,7 @@ module lc4_processor(input wire         clk,             // main clock
                       stall_B ? d2x_pc_B :
                       f2d_pc_plus_one_A;
 
-    assign is_all_zero_B = o_nzp_reg_val_B & x2m_bus_B[11:9];
+    assign is_all_zero_B = o_nzp_used & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_B = (x2m_bus_B[17] & branch_taken_B) || x2m_bus_B[16];
     
@@ -338,12 +338,18 @@ module lc4_processor(input wire         clk,             // main clock
                i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
     wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
                nzp_alu_B, nzp_ld_B, nzp_trap_B;
+    wire [2:0] i_nzp_used, o_nzp_used;
+
+    Nbit_reg #(3, 3'b000) nzp_used_reg (.in(i_nzp_used), .out(o_nzp_used), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    
-   
+    assign i_nzp_used = m2w_bus_B[21] ? o_nzp_reg_val_B:
+                       m2w_bus_A[21] ? o_nzp_reg_val_A:
+                       o_nzp_used;
+
     assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
     assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
                        (o_alu_result_A == 0) ? 3'b010 : 
