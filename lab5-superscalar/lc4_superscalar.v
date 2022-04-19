@@ -454,7 +454,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign wm_or_mm_bypass_res_B = WB_MB_bypass ? write_back_B :
                              WA_MB_bypass ? write_back_A :
                              MA_MB_bypass ? m_B_o_A :
-                             (m2w_bus_A[18])? m_B_o_B:
+                             (m2w_bus_B[18])? m_B_o_B:
                              16'h0000;
     
     assign o_cur_pc = f2d_pc_A;
