@@ -281,21 +281,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_wdata_B(write_back_B),
         .i_rd_we_B(w_o_bus_B[22]));
 
-    wire [15:0] o_alu_result_A, o_alu_result_B;
 
-    lc4_alu ALU_Pipe_A( 
-        .i_insn(x2m_bus_A[15:0]),
-        .i_pc(x2m_pc_A),
-        .i_r1data(rs_bypass_res_A),
-        .i_r2data(rt_bypass_res_A),
-        .o_result(o_alu_result_A));
-    
-    lc4_alu ALU_Pipe_B( 
-        .i_insn(x2m_bus_B[15:0]),
-        .i_pc(x2m_pc_B),
-        .i_r1data(rs_bypass_res_B),
-        .i_r2data(rt_bypass_res_B),
-        .o_result(o_alu_result_B));
     
     //  Register for dmem parameter's
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_dmem_data_o_A, w_dmem_data_o_B;
@@ -424,6 +410,25 @@ module lc4_processor(input wire         clk,             // main clock
                              rt_WB_XB_bypass ? write_back_B :
                              rt_WA_XB_bypass ? write_back_A :
                              x_B_o_B;
+
+
+    // ALU
+    wire [15:0] o_alu_result_A, o_alu_result_B;
+
+    lc4_alu ALU_Pipe_A( 
+        .i_insn(x2m_bus_A[15:0]),
+        .i_pc(x2m_pc_A),
+        .i_r1data(rs_bypass_res_A),
+        .i_r2data(rt_bypass_res_A),
+        .o_result(o_alu_result_A));
+    
+    lc4_alu ALU_Pipe_B( 
+        .i_insn(x2m_bus_B[15:0]),
+        .i_pc(x2m_pc_B),
+        .i_r1data(rs_bypass_res_B),
+        .i_r2data(rt_bypass_res_B),
+        .o_result(o_alu_result_B));
+        
     
     // WM and MM bypass
     wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
