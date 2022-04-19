@@ -286,6 +286,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_rd_we_B(w_o_bus_B[22]));
 
 
+
     
     //  Register for dmem parameter's
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_dmem_data_o_A, w_dmem_data_o_B;
@@ -297,7 +298,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign test_dmem_we_A = w_o_bus_A[18];
     assign test_dmem_we_B = w_o_bus_B[18];
-    assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
+    assign o_dmem_we = m2w_bus_A[18] || m2w_bus_B[18];
 
     assign o_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
     assign o_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
