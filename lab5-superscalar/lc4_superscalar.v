@@ -458,7 +458,10 @@ module lc4_processor(input wire         clk,             // main clock
                              16'h0000;
     
     assign o_cur_pc = f2d_pc_A;
-    assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
+    // assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
+    assign o_dmem_towrite = (m2w_bus_A[18]) ? wm_bypass_res_A : 
+                            (m2w_bus_B[18]) ? wm_or_mm_bypass_res_B:
+                            16'h0000;
     assign test_cur_pc_A = w_o_pc_A;
     assign test_cur_pc_B = w_o_pc_B;
     assign test_cur_insn_A = w_o_bus_A[15:0];
