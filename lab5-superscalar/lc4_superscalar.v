@@ -1,7 +1,3 @@
-// ~~~~~~~~~~~ Team Info ~~~~~~~~~~~ //
-// ~~~~ Tianyi Wu  &&  Zeyu Niu ~~~~ //
-// ~~~~~~  wubill  &&  zyniu  ~~~~~~ //
-
 `timescale 1ns / 1ps
 // Prevent implicit wire declaration
 // `default_nettype none
@@ -15,7 +11,6 @@ module lc4_processor(input wire         clk,             // main clock
                      input wire [15:0]  i_cur_dmem_data, // contents of o_dmem_addr
                      output wire        o_dmem_we,       // data memory write enable
                      output wire [15:0] o_dmem_towrite,  // data to write to o_dmem_addr if we is set
-
                      // testbench signals (always emitted from the WB stage)
                      output wire [ 1:0] test_stall_A,        // is this a stall cycle?  (0: no stall,
                      output wire [ 1:0] test_stall_B,        // 1: pipeline stall, 2: branch stall, 3: load stall)
@@ -39,22 +34,18 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [15:0] test_dmem_addr_B,
                      output wire [15:0] test_dmem_data_A,    // data to read/write from/to memory
                      output wire [15:0] test_dmem_data_B,
-                     
                      // zedboard switches/display/leds (ignore if you don't want to control these)
                      input  wire [ 7:0] switch_data,         // read on/off status of zedboard's 8 switches
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
-    //************************************************************************************//
-    //****************************     LAB-5 CODE BEGINS       ***************************//
-    //************************************************************************************//
+   /***  YOUR CODE HERE ***/
+   // Instruction Registers
     assign led_data = switch_data; 
-
-
-    // ************ Instruction Registers ************ //
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
-
+    wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
+    wire mem_hazard, B_need_A;
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
     wire pipe_switch;
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
@@ -67,63 +58,50 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
+    assign pipe_switch = ~x_flush_A && (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);
 
-
-    // ************ Pipe Switching and LTU Classifier ************ //
-    wire    LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
-    wire    mem_hazard, B_need_A;
-    wire    LTBr_A, LTBr_B;
-    assign pipe_switch =    ~x_flush_A && 
-                            (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);           // Case for Pipe Switching
-
-    //~~~~~~~~~~~~ Instruction input of stage-D should depend on pipe switch situation ~~~~~~~~~~~~ //
-    assign  d_i_bus_A = pipe_switch ? d2x_bus_tmp_B : 
+    assign d_i_bus_A = pipe_switch ? d2x_bus_tmp_B : 
                        stall_A ? d2x_bus_tmp_A :
                        i_cur_insn_A;
-    assign  d_i_bus_B =  pipe_switch ? i_cur_insn_A : 
+    assign d_i_bus_B =  pipe_switch ? i_cur_insn_A : 
                         stall_A ? d2x_bus_tmp_B :
                         i_cur_insn_B;
     
-    assign  LTU_between_XB_DA = (x2m_bus_B[19]) && 
+    assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
                                (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
                                ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0));
-
-    assign  LTU_within_A = (x2m_bus_A[19]) && 
+    
+    assign LTU_within_A = (x2m_bus_A[19]) && 
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
                           ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0)) &&
                           (~LTU_between_XB_DA);
-
-    assign  LTU_within_B = (x2m_bus_B[19]) && 
+    assign LTU_within_B = (x2m_bus_B[19]) && 
                           (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
                           ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) 
                           && (~B_need_A);
-
-    assign  LTU_between_XA_DB = (x2m_bus_A[19]) && 
+    assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
                                (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_A[27:25])) || 
                                ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) &&
                                (~LTU_within_B) && 
                                (~B_need_A);
 
-    //~~~~~~~~~~~~ LTU situations is in general 4-types ~~~~~~~~~~~~ //
-    assign  LTU_A =  LTU_within_A || LTU_between_XB_DA;                  // Case1: LTU in Pipe-A
-    assign  LTU_B =  LTU_within_B || LTU_between_XA_DB;                  // Case2: LTU in Pipe-B
+    assign B_need_A = ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
+                       ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
+                       (d2x_bus_A[17] && d2x_bus_A[21]);
+    
+    assign LTU_A = LTU_within_A || LTU_between_XB_DA;
+    assign LTU_B = LTU_within_B || LTU_between_XA_DB;
+    assign mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);
 
-    assign  B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
-                        ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                        (d2x_bus_B[17] && d2x_bus_A[21]);               // Case3: Pipe_B.D depends on data from Pipe A.D
-
-    assign  mem_hazard = (d2x_bus_A[19] || d2x_bus_A[18]) && (d2x_bus_B[19] || d2x_bus_B[18]);           // Case4: Both A & B are dmem instrucitons
-
-    // ~~~~~~~~~~~~ Pipe X.A /B IS A LDR, which is used by a following BR insns D.A ~~~~~~~~~~~~ //
-    assign  LTBr_A = d2x_bus_A[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);
-    assign  LTBr_B = d2x_bus_B[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]); 
-
+    // Pipe X.A /B IS A LDR, which is used by a following BR insns D.A
+    wire LTBr_A, LTBr_B;
+    assign LTBr_A = d2x_bus_A[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]);
+    assign LTBr_B = d2x_bus_B[17] && ((x2m_bus_A[19] && ~x2m_bus_B[21]) | x2m_bus_B[19]); 
    
 
-
-    // ************************ Stall Registers ************************ //
-    wire [1:0]  d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
-    wire [1:0]  d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_i_B, m_stall_o_B;
+    // Stall Registers
+    wire [1:0] d_stall_i_A, d_stall_o_A, x_stall_i_A, x_stall_o_A, m_stall_o_A;
+    wire [1:0] d_stall_i_B, d_stall_o_B, x_stall_i_B, x_stall_o_B, m_stall_i_B, m_stall_o_B;
     wire stall_A, stall_B;
 
     Nbit_reg #(2, 2'b10) d_stall_reg_A (.in(d_stall_i_A), .out(d_stall_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_br_taken_or_ctrl_A));
@@ -136,10 +114,10 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(2, 2'b10) m_stall_reg_B (.in(m_stall_i_B), .out(m_stall_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(2, 2'b10) w_stall_reg_B (.in(m_stall_o_B), .out(test_stall_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
 
-    assign  d_stall_i_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 :
+    assign d_stall_i_A = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 :
                          (LTU_A || LTBr_A) ? 2'd3 :
                          2'd0;
-    assign  d_stall_i_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 :
+    assign d_stall_i_B = (x_br_taken_or_ctrl_A == 1 || x_br_taken_or_ctrl_B == 1) ? 2'd2 :
                          (LTU_A || LTBr_A || B_need_A || mem_hazard) ? 2'd1 :
                          (LTU_B || LTBr_B) ? 2'd3 :
                          2'd0;
@@ -151,22 +129,16 @@ module lc4_processor(input wire         clk,             // main clock
     assign m_stall_i_B = (x_br_taken_or_ctrl_A == 1) ? 2'd2 : x_stall_o_B;
 
 
-
-    // ************************ Flush Logics ************************ //
-    wire    d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_A, m_flush_B, w_flush_A, w_flush_B;
+    wire d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
     assign d_flush_B = x_br_taken_or_ctrl_B | x_br_taken_or_ctrl_A;
     assign x_flush_A = stall_A | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
     assign x_flush_B = stall_B | x_br_taken_or_ctrl_B | pipe_switch | x_br_taken_or_ctrl_A;
-    assign m_flush_A = 1'b0;
     assign m_flush_B = x_br_taken_or_ctrl_A;
-    assign w_flush_A = 1'b0;
-    assign w_flush_B = 1'b0;
    
-
-
-    // ************************ PC Registers ************************ //
+    
+    // PC Registers
     wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
     wire [15:0] d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
@@ -184,269 +156,6 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_A_PC_Inc_One(.a(f2d_pc_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one_A));
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
 
-
-
-    // ************************ A, B, O, D Registers ************************ //
-    wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
-                m_B_o_A, m_O_i_A, m_O_o_A, 
-                w_O_o_A, w_D_i_A, w_D_o_A;
-    wire [15:0] x_A_i_B, x_A_o_B, x_B_i_B, x_B_o_B,
-                m_B_o_B, m_O_i_B, m_O_o_B, 
-                w_O_o_B, w_D_i_B, w_D_o_B;
-    wire [15:0] write_back_A, write_back_B;                  // Determine the value that writes back to the Regfiles //
-                    
-    Nbit_reg #(16, 16'b0) x_A_reg_A (.in(x_A_i_A), .out(x_A_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
-    Nbit_reg #(16, 16'b0) x_B_reg_A (.in(x_B_i_A), .out(x_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
-    Nbit_reg #(16, 16'b0) m_B_reg_A (.in(rt_bypass_res_A), .out(m_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) m_O_reg_A (.in(m_O_i_A), .out(m_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) w_O_reg_A (.in(m_O_o_A), .out(w_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) w_D_reg_A (.in(i_cur_dmem_data), .out(w_D_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-
-    Nbit_reg #(16, 16'b0) x_A_reg_B (.in(x_A_i_B), .out(x_A_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
-    Nbit_reg #(16, 16'b0) x_B_reg_B (.in(x_B_i_B), .out(x_B_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
-    Nbit_reg #(16, 16'b0) m_B_reg_B (.in(rt_bypass_res_B), .out(m_B_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
-    Nbit_reg #(16, 16'b0) m_O_reg_B (.in(m_O_i_B), .out(m_O_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
-    Nbit_reg #(16, 16'b0) w_O_reg_B (.in(m_O_o_B), .out(w_O_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(16, 16'b0) w_D_reg_B (.in(i_cur_dmem_data), .out(w_D_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    
-    // assign  x_A_i_A = ((w_o_bus_A[27:25] == d2x_bus_A[33:31]) && w_o_bus_A[22]) ? write_back_A : o_regfile_rs_A; 
-    // assign  x_B_i_A = ((w_o_bus_A[27:25] == d2x_bus_A[30:28]) && w_o_bus_A[22]) ? write_back_A : o_regfile_rt_A;
-    // assign  x_A_i_B = ((w_o_bus_B[27:25] == d2x_bus_B[33:31]) && w_o_bus_B[22]) ? write_back_B : o_regfile_rs_B; 
-    // assign  x_B_i_B = ((w_o_bus_B[27:25] == d2x_bus_B[30:28]) && w_o_bus_B[22]) ? write_back_B : o_regfile_rt_B;
-    // assign  m_O_i_A = (d2x_bus_A[16] == 1) ? d2x_pc_A : o_alu_result_A; 
-    // assign  m_O_i_B = (d2x_bus_B[16] == 1) ? d2x_pc_B : o_alu_result_B;
-    assign  x_A_i_A = o_regfile_rs_A;
-    assign  x_B_i_A = o_regfile_rt_A;
-    assign  x_A_i_B = o_regfile_rs_B; 
-    assign  x_B_i_B = o_regfile_rt_B;
-    assign  m_O_i_A = o_alu_result_A; 
-    assign  m_O_i_B = o_alu_result_B;
-    assign  write_back_A = (w_o_bus_A[19] == 1) ? w_D_o_A: w_O_o_A;
-    assign  write_back_B = (w_o_bus_B[19] == 1) ? w_D_o_B: w_O_o_B;
-
-
-
-    // ************************ Superscaler Decoders ************************ //
-    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
-
-    lc4_decoder Decoder_Pipe_A(
-        .r1sel(d2x_bus_A[33:31]), 
-        .r2sel(d2x_bus_A[30:28]),
-        .wsel(d2x_bus_A[27:25]),
-        .r1re(d2x_bus_A[24]),
-        .r2re(d2x_bus_A[23]),
-        .regfile_we(d2x_bus_A[22]),
-        .nzp_we(d2x_bus_A[21]), 
-        .select_pc_plus_one(d2x_bus_A[20]),
-        .is_load(d2x_bus_A[19]), 
-        .is_store(d2x_bus_A[18]),
-        .is_branch(d2x_bus_A[17]), 
-        .is_control_insn(d2x_bus_A[16]),
-        .insn(d2x_bus_tmp_A)
-        );
-    
-    lc4_decoder Decoder_Pipe_B(
-        .r1sel(d2x_bus_B[33:31]), 
-        .r2sel(d2x_bus_B[30:28]),
-        .wsel(d2x_bus_B[27:25]),
-        .r1re(d2x_bus_B[24]),
-        .r2re(d2x_bus_B[23]),
-        .regfile_we(d2x_bus_B[22]),
-        .nzp_we(d2x_bus_B[21]), 
-        .select_pc_plus_one(d2x_bus_B[20]),
-        .is_load(d2x_bus_B[19]), 
-        .is_store(d2x_bus_B[18]),
-        .is_branch(d2x_bus_B[17]), 
-        .is_control_insn(d2x_bus_B[16]),
-        .insn(d2x_bus_tmp_B)
-        );
-    
-
-
-    // ************************ Superscaler Regfile ************************ //
-    // wire [2:0]  rd_sel_A, rd_sel_B ; 
-    // wire [15:0] w_data_A, w_data_B;
-    lc4_regfile_ss Superscaler_Regfile(
-        .clk(clk),
-        .gwe(gwe),
-        .rst(rst),
-
-        .i_rs_A(d2x_bus_A[33:31]),
-        .i_rt_A(d2x_bus_A[30:28]),
-        .o_rs_data_A(o_regfile_rs_A),
-        .o_rt_data_A(o_regfile_rt_A),
-
-        .i_rs_B(d2x_bus_B[33:31]),
-        .i_rt_B(d2x_bus_B[30:28]),
-        .o_rs_data_B(o_regfile_rs_B),
-        .o_rt_data_B(o_regfile_rt_B),
-
-        .i_rd_A(w_o_bus_A[27:25]),
-        .i_wdata_A(write_back_A),
-        .i_rd_we_A(w_o_bus_A[22]),
-
-        .i_rd_B(w_o_bus_B[27:25]),
-        .i_wdata_B(write_back_B),
-        .i_rd_we_B(w_o_bus_B[22])
-        );
-
-    // assign rd_sel_A = w_o_bus_A[20] ? 3'h7 : w_o_bus_A[27:25];
-    // assign rd_sel_B = w_o_bus_A[20] ? 3'h7  : w_o_bus_B[27:25];    
-    // assign w_data_A = w_o_bus_A[20] ? w_o_pc_A : write_back_A;
-    // assign w_data_B = w_o_bus_B[20] ? w_o_pc_B : write_back_B;
-
-    
-
-    // ************************ Superscaler ALUs ************************ // 
-    wire [15:0] o_alu_result_A, o_alu_result_B;
-    wire [15:0] m_alu_A, m_alu_B, w_alu_A, w_alu_B;
-
-
-    lc4_alu ALU_Pipe_A( 
-        .i_insn(x2m_bus_A[15:0]),
-        .i_pc(x2m_pc_A),
-        .i_r1data(rs_bypass_res_A),
-        .i_r2data(rt_bypass_res_A),
-        .o_result(o_alu_result_A)
-        );
-    
-    lc4_alu ALU_Pipe_B( 
-        .i_insn(x2m_bus_B[15:0]),
-        .i_pc(x2m_pc_B),
-        .i_r1data(rs_bypass_res_B),
-        .i_r2data(rt_bypass_res_B),
-        .o_result(o_alu_result_B)
-        );
-
-    Nbit_reg #(16, 16'h0000) m_alu_Reg_A(.in(o_alu_result_A), .out( m_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  m_flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) w_alu_Reg_A(.in(m_alu_A), .out( w_alu_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( w_flush_A ));
-    Nbit_reg #(16, 16'h0000) m_alu_Reg_B(.in(o_alu_result_B), .out( m_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  m_flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) w_alu_Reg_B(.in(m_alu_B), .out( w_alu_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( w_flush_B ));
-
-
-
-    
-    // ************************ Dmem-related Situations ************************//
-    wire [15:0] w_o_mem_A, w_o_mem_B;
-    wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_o_dmem_addr_A, w_o_dmem_addr_B;
-    wire [15:0] o_dmem_towrite_A ,o_dmem_towrite_B, w_o_dmem_towrite_A, w_o_dmem_towrite_B;
-    Nbit_reg #(16, 16'h0000) w_mem_reg_A(.in(i_cur_dmem_data), .out( w_o_mem_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    Nbit_reg #(16, 16'h0000) W_MEM_Reg_B(.in(i_cur_dmem_data), .out( w_o_mem_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-
-    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_A(.in(o_dmem_addr_A), .out( w_o_dmem_addr_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    Nbit_reg #(16, 16'h0000) W_mem_addr_Reg_B(.in(o_dmem_addr_B), .out( w_o_dmem_addr_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_A(.in(o_dmem_towrite_A), .out( w_o_dmem_towrite_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-    // Nbit_reg #(16, 16'h0000) W_mem_towrite_Reg_B(.in(o_dmem_towrite_B), .out( w_o_dmem_towrite_B ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst( 1'b0 ));
-
-    // wire [15:0] i_cur_dmem_data_A, i_cur_dmem_data_B;
-    assign test_dmem_we_A = w_o_bus_A[18];
-    assign test_dmem_we_B = w_o_bus_B[18];
-
-    // assign test_dmem_we_A = m2w_bus_A[18];
-    // assign test_dmem_we_B = m2w_bus_B[18];
-
-    assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
-
-    // assign test_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
-    // assign test_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
-    assign o_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
-    assign o_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
-
-    assign test_dmem_addr_A = w_o_dmem_addr_A;
-    assign test_dmem_addr_B = w_o_dmem_addr_B;
-
-    // assign o_dmem_addr =    ((m2w_bus_A[19]) || (m2w_bus_A[18])) ? test_dmem_addr_A :
-    //                         ((m2w_bus_B[19]) || (m2w_bus_B[18])) ? test_dmem_addr_B : 
-    //                         16'b0; 
-    assign o_dmem_addr = test_dmem_addr_A | test_dmem_addr_B; 
-    
-    // assign i_cur_dmem_data_A = test_dmem_addr_A ? i_cur_dmem_data : 16'b0; 
-    // assign i_cur_dmem_data_B = test_dmem_addr_B ? i_cur_dmem_data : 16'b0;    
-    // assign test_dmem_data_A = (m2w_bus_A[19] == 1) ? i_cur_dmem_data :
-    //                           (m2w_bus_A[18] == 1) ? wm_bypass_res_A : 16'b0; 
-    // assign test_dmem_data_B = (m2w_bus_B[19] == 1) ? i_cur_dmem_data :
-    //                           (m2w_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;
-    
-    assign test_dmem_data_A = (w_o_bus_A[19] == 1) ? i_cur_dmem_data :
-                              (w_o_bus_A[18] == 1) ? wm_bypass_res_A : 16'b0; 
-    assign test_dmem_data_B = (w_o_bus_B[19] == 1) ? i_cur_dmem_data :
-                              (w_o_bus_B[18] == 1) ? wm_or_mm_bypass_res_B : 16'b0;  
-
-    
-
-
-    // ************************ NZP Registers ************************ //
-    Nbit_reg Superscalar_NZP_Reg_A(
-        .in(i_regfile_wdata_sign_A), 
-        .out(o_nzp_reg_val_A),
-        .clk(clk),
-        .we(x2m_bus_A[21]),
-        .gwe(gwe),
-        .rst(rst)
-        );
-    defparam Superscalar_NZP_Reg_A.n = 3;
-
-    Nbit_reg Superscalar_NZP_Reg_B(
-        .in(i_regfile_wdata_sign_B), 
-        .out(o_nzp_reg_val_B),
-        .clk(clk),
-        .we(x2m_bus_B[21]),
-        .gwe(gwe),
-        .rst(rst)
-        );
-    defparam Superscalar_NZP_Reg_B.n = 3;
-
-
-
-    // ************************ M/W Stage NZP Decoders ************************ //
-    wire [2:0] i_regfile_wdata_sign_A, m_nzp_o_A, w_nzp_i_A,
-               i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
-    wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
-               nzp_alu_B, nzp_ld_B, nzp_trap_B;
-
-    Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
-    Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
-    //Pipe-A//
-    assign w_nzp_i_A = (m2w_bus_A[19]) ? nzp_ld_A : m_nzp_o_A;
-
-    assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
-                       (o_alu_result_A == 0) ? 3'b010 : 
-                       3'b100;
-    assign nzp_ld_A = ($signed(i_cur_dmem_data) > 0) ? 3'b001 :
-                      (i_cur_dmem_data == 0) ? 3'b010 : 
-                      3'b100;  
-    assign nzp_trap_A = ($signed(x2m_pc_A) > 0) ? 3'b001:
-                        (x2m_pc_A == 0) ? 3'b010: 
-                        3'b100;  
-    assign i_regfile_wdata_sign_A = (x2m_bus_A[15:12] == 4'b1111) ? nzp_trap_A :  
-                                    ((m2w_bus_A[19] == 1) && (x_stall_o_A == 2'd3)) ? nzp_ld_A : 
-                                    nzp_alu_A;
-    //Pipe-B//
-    assign w_nzp_i_B = (m2w_bus_B[19]) ? nzp_ld_B : m_nzp_o_B;
-    assign nzp_alu_B = ($signed(o_alu_result_B) > 0) ? 3'b001 : 
-                       (o_alu_result_B == 0) ? 3'b010 : 
-                       3'b100;
-    assign nzp_ld_B = ($signed(i_cur_dmem_data) > 0) ? 3'b001 :
-                      (i_cur_dmem_data == 0) ? 3'b010 : 
-                      3'b100;  
-    assign nzp_trap_B = ($signed(x2m_pc_B) > 0) ? 3'b001:
-                        (x2m_pc_B == 0) ? 3'b010: 
-                        3'b100;  
-    assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
-                                    ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
-                                    nzp_alu_B;
-
-    // To Check1: (wuji'605):  assign M_Ctrl_NZP_A = (M_insn_LDR_A)? Mem_NZP_Update : M_Ctrl_NZP_out_A; 
-
-    // To Check2: write_back_A/B -> (Wuji'151/511/639: W_RF_IN_data_A/B),  改regfile的writeback和rd_sel后错误更多
-
-    // To Check3: test_dmem_data_A/B: 结果没分类，但尝试更改分类/加了alu register，error都没变
-
-    // To do: update w_nzp_i_A, w_nzp_i_B, (wuji '605, '683)
-
-    // ************************ Branch Prediction ************************ //
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
 
@@ -476,14 +185,204 @@ module lc4_processor(input wire         clk,             // main clock
     // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
 
 
+    // Regiters for A, B, O, D //
+    wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
+                m_B_o_A, m_O_i_A, m_O_o_A, 
+                w_O_o_A, w_D_i_A, w_D_o_A;
+    wire [15:0] x_A_i_B, x_A_o_B, x_B_i_B, x_B_o_B,
+                m_B_o_B, m_O_i_B, m_O_o_B, 
+                w_O_o_B, w_D_i_B, w_D_o_B;
+    wire [15:0] write_back_A, write_back_B;                  // Determine the value that writes back to the Regfiles //
+                    
+    Nbit_reg #(16, 16'b0) x_A_reg_A (.in(x_A_i_A), .out(x_A_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
+    Nbit_reg #(16, 16'b0) x_B_reg_A (.in(x_B_i_A), .out(x_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
+    Nbit_reg #(16, 16'b0) m_B_reg_A (.in(rt_bypass_res_A), .out(m_B_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) m_O_reg_A (.in(m_O_i_A), .out(m_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) w_O_reg_A (.in(m_O_o_A), .out(w_O_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) w_D_reg_A (.in(i_cur_dmem_data), .out(w_D_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    Nbit_reg #(16, 16'b0) x_A_reg_B (.in(x_A_i_B), .out(x_A_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
+    Nbit_reg #(16, 16'b0) x_B_reg_B (.in(x_B_i_B), .out(x_B_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
+    Nbit_reg #(16, 16'b0) m_B_reg_B (.in(rt_bypass_res_B), .out(m_B_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(16, 16'b0) m_O_reg_B (.in(m_O_i_B), .out(m_O_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(16, 16'b0) w_O_reg_B (.in(m_O_o_B), .out(w_O_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0) w_D_reg_B (.in(i_cur_dmem_data), .out(w_D_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     
-    // ************************ MX/WX bypass situation classifier ************************ //
+    assign  x_A_i_A = o_regfile_rs_A;
+    assign  x_B_i_A = o_regfile_rt_A;
+    assign  x_A_i_B = o_regfile_rs_B; 
+    assign  x_B_i_B = o_regfile_rt_B;
+    assign  m_O_i_A = o_alu_result_A; 
+    assign  m_O_i_B = o_alu_result_B;
+
+    wire [15:0] w_o_pc_plus_one_A, w_o_pc_plus_one_B;
+
+    cla16 Pipeline_A_W_PC_Inc_One(.a(w_o_pc_A), .b(16'b0), .cin(1'b1), .sum(w_o_pc_plus_one_A));
+    cla16 Pipeline_B_W_PC_Inc_One(.a(w_o_pc_B), .b(16'b0), .cin(1'b1), .sum(w_o_pc_plus_one_B));
+
+    assign  write_back_A = (w_o_bus_A[20]) ? w_o_pc_plus_one_A :
+                           (w_o_bus_A[19] == 1) ? w_D_o_A: 
+                           w_O_o_A;
+    assign  write_back_B = (w_o_bus_B[20]) ? w_o_pc_plus_one_B :
+                           (w_o_bus_B[19] == 1) ? w_D_o_B : 
+                           w_O_o_B;
+
+    lc4_decoder Decoder_Pipe_A(
+        .r1sel(d2x_bus_A[33:31]), 
+        .r2sel(d2x_bus_A[30:28]),
+        .wsel(d2x_bus_A[27:25]),
+        .r1re(d2x_bus_A[24]),
+        .r2re(d2x_bus_A[23]),
+        .regfile_we(d2x_bus_A[22]),
+        .nzp_we(d2x_bus_A[21]), 
+        .select_pc_plus_one(d2x_bus_A[20]),
+        .is_load(d2x_bus_A[19]), 
+        .is_store(d2x_bus_A[18]),
+        .is_branch(d2x_bus_A[17]), 
+        .is_control_insn(d2x_bus_A[16]),
+        .insn(d2x_bus_tmp_A));
+    
+    lc4_decoder Decoder_Pipe_B(
+        .r1sel(d2x_bus_B[33:31]), 
+        .r2sel(d2x_bus_B[30:28]),
+        .wsel(d2x_bus_B[27:25]),
+        .r1re(d2x_bus_B[24]),
+        .r2re(d2x_bus_B[23]),
+        .regfile_we(d2x_bus_B[22]),
+        .nzp_we(d2x_bus_B[21]), 
+        .select_pc_plus_one(d2x_bus_B[20]),
+        .is_load(d2x_bus_B[19]), 
+        .is_store(d2x_bus_B[18]),
+        .is_branch(d2x_bus_B[17]), 
+        .is_control_insn(d2x_bus_B[16]),
+        .insn(d2x_bus_tmp_B));
+    
+    wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
     wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
-                rt_bypass_res_A, rt_bypass_res_B;               // Bypass Result for ALU input
-    wire        rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
-                rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
-                rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
-                rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;             // Bypass Cases
+                rt_bypass_res_A, rt_bypass_res_B,
+                wm_bypass_res_A, wm_or_mm_bypass_res_B;                
+           
+    lc4_regfile_ss Superscaler_Regfile(
+        .clk(clk),
+        .gwe(gwe),
+        .rst(rst),
+        .i_rs_A(d2x_bus_A[33:31]),
+        .i_rt_A(d2x_bus_A[30:28]),
+        .o_rs_data_A(o_regfile_rs_A),
+        .o_rt_data_A(o_regfile_rt_A),
+        .i_rs_B(d2x_bus_B[33:31]),
+        .i_rt_B(d2x_bus_B[30:28]),
+        .o_rs_data_B(o_regfile_rs_B),
+        .o_rt_data_B(o_regfile_rt_B),
+        .i_rd_A(w_o_bus_A[27:25]),
+        .i_wdata_A(write_back_A),
+        .i_rd_we_A(w_o_bus_A[22]),
+        .i_rd_B(w_o_bus_B[27:25]),
+        .i_wdata_B(write_back_B),
+        .i_rd_we_B(w_o_bus_B[22]));
+
+    wire [15:0] o_alu_result_A, o_alu_result_B;
+
+    lc4_alu ALU_Pipe_A( 
+        .i_insn(x2m_bus_A[15:0]),
+        .i_pc(x2m_pc_A),
+        .i_r1data(rs_bypass_res_A),
+        .i_r2data(rt_bypass_res_A),
+        .o_result(o_alu_result_A));
+    
+    lc4_alu ALU_Pipe_B( 
+        .i_insn(x2m_bus_B[15:0]),
+        .i_pc(x2m_pc_B),
+        .i_r1data(rs_bypass_res_B),
+        .i_r2data(rt_bypass_res_B),
+        .o_result(o_alu_result_B));
+    
+    //  Register for dmem parameter's
+    wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_dmem_data_o_A, w_dmem_data_o_B;
+    // Nbit_reg #(1, 1'b0)     w_dmem_we_reg (.in(o_dmem_we), .out(test_dmem_we), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)   w_dmem_addr_reg_A (.in(o_dmem_addr_A), .out(test_dmem_addr_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)   w_dmem_addr_reg_B (.in(o_dmem_addr_B), .out(test_dmem_addr_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)   w_dmem_data_reg_A (.in(wm_bypass_res_A), .out(w_dmem_data_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(16, 16'b0)   w_dmem_data_reg_B (.in(wm_or_mm_bypass_res_B), .out(w_dmem_data_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+
+    assign test_dmem_we_A = w_o_bus_A[18];
+    assign test_dmem_we_B = w_o_bus_B[18];
+    assign o_dmem_we = test_dmem_we_A || test_dmem_we_B;
+
+    assign o_dmem_addr_A = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? m_O_o_A : 16'b0;
+    assign o_dmem_addr_B = ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? m_O_o_B : 16'b0;
+    assign o_dmem_addr = ((m2w_bus_A[19] == 1) || (m2w_bus_A[18] == 1)) ? o_dmem_addr_A :
+                         ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? o_dmem_addr_B :
+                         16'b0;
+   
+    assign test_dmem_data_A = (w_o_bus_A[19] == 1) ? w_D_o_A :
+                              (w_o_bus_A[18] == 1) ? w_dmem_data_o_A : 16'b0; 
+    assign test_dmem_data_B = (w_o_bus_B[19] == 1) ? w_D_o_B :
+                              (w_o_bus_B[18] == 1) ? w_dmem_data_o_B : 16'b0;    
+    
+    // NZP Registers //
+    Nbit_reg Superscalar_NZP_Reg_A(
+        .in(i_regfile_wdata_sign_A), 
+        .out(o_nzp_reg_val_A),
+        .clk(clk),
+        .we(x2m_bus_A[21]),
+        .gwe(gwe),
+        .rst(rst));
+    defparam Superscalar_NZP_Reg_A.n = 3;
+
+    Nbit_reg Superscalar_NZP_Reg_B(
+        .in(i_regfile_wdata_sign_B), 
+        .out(o_nzp_reg_val_B),
+        .clk(clk),
+        .we(x2m_bus_B[21]),
+        .gwe(gwe),
+        .rst(rst));
+    defparam Superscalar_NZP_Reg_B.n = 3;
+
+    // Registers for NZP
+    wire [2:0] i_regfile_wdata_sign_A, m_nzp_o_A, w_nzp_i_A,
+               i_regfile_wdata_sign_B, m_nzp_o_B, w_nzp_i_B;
+    wire [2:0] nzp_alu_A, nzp_ld_A, nzp_trap_A,
+               nzp_alu_B, nzp_ld_B, nzp_trap_B;
+    Nbit_reg #(3, 3'b0) m_nzp_reg_A (.in(i_regfile_wdata_sign_A), .out(m_nzp_o_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(3, 3'b0) w_nzp_reg_A (.in(w_nzp_i_A), .out(test_nzp_new_bits_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+    Nbit_reg #(3, 3'b0) m_nzp_reg_B (.in(i_regfile_wdata_sign_B), .out(m_nzp_o_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
+   
+   
+    assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
+    assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
+                       (o_alu_result_A == 0) ? 3'b010 : 
+                       3'b100;
+    assign nzp_ld_A = ($signed(i_cur_dmem_data) > 0) ? 3'b001 :
+                      (i_cur_dmem_data == 0) ? 3'b010 : 
+                      3'b100;  
+    assign nzp_trap_A = ($signed(x2m_pc_A) > 0) ? 3'b001:
+                        (x2m_pc_A == 0) ? 3'b010: 
+                        3'b100;  
+    assign i_regfile_wdata_sign_A = (x2m_bus_A[15:12] == 4'b1111) ? nzp_trap_A :  
+                                    ((m2w_bus_A[19] == 1) && (x_stall_o_A == 2'd3)) ? nzp_ld_A : 
+                                    nzp_alu_A;
+    
+    assign w_nzp_i_B = ((m2w_bus_B[19]==1)) ? nzp_ld_B : m_nzp_o_B;
+    assign nzp_alu_B = ($signed(o_alu_result_B) > 0) ? 3'b001 : 
+                       (o_alu_result_B == 0) ? 3'b010 : 
+                       3'b100;
+    assign nzp_ld_B = ($signed(i_cur_dmem_data) > 0) ? 3'b001 :
+                      (i_cur_dmem_data == 0) ? 3'b010 : 
+                      3'b100;  
+    assign nzp_trap_B = ($signed(x2m_pc_B) > 0) ? 3'b001:
+                        (x2m_pc_B == 0) ? 3'b010: 
+                        3'b100;  
+    assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
+                                    ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
+                                    nzp_alu_B;
+    
+    // MX, WX bypass
+    wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
+         rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
+         rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
+         rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
     
     assign rs_MB_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[24]);
     assign rs_MA_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[24]);
@@ -526,11 +425,8 @@ module lc4_processor(input wire         clk,             // main clock
                              rt_WA_XB_bypass ? write_back_A :
                              x_B_o_B;
     
-   
-   
-    // ************************ WM/MM bypass classifier ************************ //
-    wire [15:0]     wm_bypass_res_A, wm_or_mm_bypass_res_B;                                     // Bypass Result for ALU input
-    wire            WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;       // Bypass cases
+    // WM and MM bypass
+    wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
 
     assign WB_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22]);
     assign WA_MA_bypass = (m2w_bus_A[18]) && (m2w_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22]);
@@ -545,13 +441,9 @@ module lc4_processor(input wire         clk,             // main clock
                              WA_MB_bypass ? write_back_A :
                              MA_MB_bypass ? m_B_o_A :
                              m_B_o_B;
-
-
-
-    // ************************ Test Wire Assignment ************************ //
+    
     assign o_cur_pc = f2d_pc_A;
     assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
-
     assign test_cur_pc_A = w_o_pc_A;
     assign test_cur_pc_B = w_o_pc_B;
     assign test_cur_insn_A = w_o_bus_A[15:0];
@@ -560,22 +452,10 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_we_B = w_o_bus_B[22];
     assign test_regfile_wsel_A = w_o_bus_A[27:25];
     assign test_regfile_wsel_B = w_o_bus_B[27:25];
-    // assign test_regfile_data_A =  write_back_A;
-    // assign test_regfile_data_B =  write_back_B;
-    assign test_regfile_data_A = (w_o_bus_A[19]) ? w_o_mem_A : w_alu_A;
-    assign test_regfile_data_B = (w_o_bus_B[19]) ? w_o_mem_B : w_alu_B;
+    assign test_regfile_data_A =  write_back_A;
+    assign test_regfile_data_B =  write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
-
-
-
-    //************************************************************************************//
-    //*****************************     LAB-5 CODE ENDS       ****************************//
-    //************************************************************************************//
-
-
-
-
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
     *
@@ -583,22 +463,20 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       if ($time >= 300 && $time <=800) begin
-        $display("\n\n ******************* New Cycle ******************* ");
-
+       if ($time >= 500 && $time <=800) begin
+        $display("=============================================");
         $display("Time = %d, test_stall_A = %h, test_stall_B = %h, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
                 $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
-                
         $display("d_stall_i_A %d, d_stall_i_B %d, test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
                 d_stall_i_A, d_stall_i_B, test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
-        $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
-        $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
-        //$display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
-        //$display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
-        $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
+    //     $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
+    //     $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
+    //     $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
+    //     $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
+        // $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
         $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
-        $display("INSTR_B: test_dmem_we_A: %h , test_dmem_data_A: %h , test_dmem_addr_A: %h ,test_dmem_data_B: %h , test_dmem_addr_B: %h \n", test_dmem_we_A, ,test_dmem_data_A, test_dmem_addr_A, test_dmem_data_B, test_dmem_addr_B);
-        $display("~~~~~~~~~~~~~~~~~~~~~Errors From Test Bench~~~~~~~~~~~~~~~~~~~~ \n");
+        $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
+        $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
        end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
