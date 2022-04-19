@@ -75,10 +75,10 @@ module lc4_processor(input wire         clk,             // main clock
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
                           ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0)) &&
                           (~LTU_between_XB_DA);
-                          
+
     assign LTU_within_B = (x2m_bus_B[19]) && 
                           (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
-                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) 
+                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) /*|| (d2x_bus_B[15:12]==4'b0)*/) 
                           && (~B_need_A);
 
     assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
