@@ -433,8 +433,8 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B));
 
-    Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_A), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
-    Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_B), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    // Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_A), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    // Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_B), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
 
     
     // WM and MM bypass
