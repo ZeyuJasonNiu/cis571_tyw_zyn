@@ -487,7 +487,7 @@ module lc4_processor(input wire         clk,             // main clock
             //      $time, test_stall_A, test_stall_B, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
             // $display("d_stall_i_A %d, d_stall_i_B %d, test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
             //      d_stall_i_A, d_stall_i_B, test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
-            $display("STALL_B: %b, %b, %b, %b \n", test_stall_A, test_stall_B);
+            $display("STALL_B: %b, %b,  \n", test_stall_A, test_stall_B);
             // $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
             // $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
             // $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
