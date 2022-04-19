@@ -305,10 +305,10 @@ module lc4_processor(input wire         clk,             // main clock
                          ((m2w_bus_B[19] == 1) || (m2w_bus_B[18] == 1)) ? o_dmem_addr_B :
                          16'b0;
    
-    assign test_dmem_data_A = (w_o_bus_A[19] == 1) ? w_D_o_A :
-                              (w_o_bus_A[18] == 1) ? w_dmem_data_o_A : 16'b0; 
-    assign test_dmem_data_B = (w_o_bus_B[19] == 1) ? w_D_o_B :
-                              (w_o_bus_B[18] == 1) ? w_dmem_data_o_B : 16'b0;    
+    assign test_dmem_data_A = (w_o_bus_A[19]) ? w_D_o_A :
+                              (w_o_bus_A[18]) ? w_dmem_data_o_A : 16'b0; 
+    assign test_dmem_data_B = (w_o_bus_B[19]) ? w_D_o_B :
+                              (w_o_bus_B[18]) ? w_dmem_data_o_B : 16'b0;    
     
     // NZP Registers //
     Nbit_reg Superscalar_NZP_Reg_A(
@@ -433,6 +433,9 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B));
 
+    Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_A), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+    Nbit_reg #(16, 16'h0000) m_rt_Reg_A(.in(rt_bypass_res_B), .out( M_R2_A ), .clk( clk ), .we( 1'b1 ), .gwe(gwe),  .rst(  M_Flush_A | rst  ));
+
     
     // WM and MM bypass
     wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
@@ -445,11 +448,13 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign wm_bypass_res_A = WB_MA_bypass ? write_back_B :
                              WA_MA_bypass ? write_back_A :
-                             m_B_o_A;
+                             (m2w_bus_A[18]) ? m_B_o_A : 
+                             16'h0000;
     assign wm_or_mm_bypass_res_B = WB_MB_bypass ? write_back_B :
                              WA_MB_bypass ? write_back_A :
                              MA_MB_bypass ? m_B_o_A :
-                             m_B_o_B;
+                             (m2w_bus_A[18])? m_B_o_B:
+                             16'h0000;
     
     assign o_cur_pc = f2d_pc_A;
     assign o_dmem_towrite = test_dmem_addr_A ? wm_bypass_res_A : wm_or_mm_bypass_res_B;
@@ -461,8 +466,8 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_we_B = w_o_bus_B[22];
     assign test_regfile_wsel_A = w_o_bus_A[27:25];
     assign test_regfile_wsel_B = w_o_bus_B[27:25];
-    assign test_regfile_data_A =  write_back_A;
-    assign test_regfile_data_B =  write_back_B;
+    assign test_regfile_data_A = write_back_A;
+    assign test_regfile_data_B = write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
    /* Add $display(...) calls in the always block below to
@@ -480,9 +485,9 @@ module lc4_processor(input wire         clk,             // main clock
                  d_stall_i_A, d_stall_i_B, test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
             $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
             $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
-            $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
-            $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
-            $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
+            // $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
+            // $display("LTU_A %b, LTBr_A %b, B_need_A %b, mem_hazard %b", LTU_A, LTBr_A, B_need_A, mem_hazard);
+            // $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
             $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
             $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
             $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
