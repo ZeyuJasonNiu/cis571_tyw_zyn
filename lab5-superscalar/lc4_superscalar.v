@@ -69,7 +69,7 @@ module lc4_processor(input wire         clk,             // main clock
     
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
                                (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
-                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])) /*|| (d2x_bus_A[15:12]==4'b0)*/);
+                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])) );
     
     assign LTU_within_A = (x2m_bus_A[19]) && 
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
@@ -78,7 +78,7 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign LTU_within_B = (x2m_bus_B[19]) && 
                           (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
-                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) /*|| (d2x_bus_B[15:12]==4'b0)*/) 
+                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) ) 
                           && (~B_need_A);
 
     assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
@@ -89,7 +89,23 @@ module lc4_processor(input wire         clk,             // main clock
 
     assign B_need_A = ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
                        ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                       (d2x_bus_A[17] && d2x_bus_A[21]);
+                       (d2x_bus_B[17] && d2x_bus_A[21]);
+    
+
+        // lc4_decoder Decoder_Pipe_B(
+        // .r1sel(d2x_bus_B[33:31]), 
+        // .r2sel(d2x_bus_B[30:28]),
+        // .wsel(d2x_bus_B[27:25]),
+        // .r1re(d2x_bus_B[24]),
+        // .r2re(d2x_bus_B[23]),
+        // .regfile_we(d2x_bus_B[22]),
+        // .nzp_we(d2x_bus_B[21]), 
+        // .select_pc_plus_one(d2x_bus_B[20]),
+        // .is_load(d2x_bus_B[19]), 
+        // .is_store(d2x_bus_B[18]),
+        // .is_branch(d2x_bus_B[17]), 
+        // .is_control_insn(d2x_bus_B[16]),
+        // .insn(d2x_bus_tmp_B));
     
     assign LTU_A = LTU_within_A || LTU_between_XB_DA;
     assign LTU_B = LTU_within_B || LTU_between_XA_DB;
