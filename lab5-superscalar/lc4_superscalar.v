@@ -69,19 +69,21 @@ module lc4_processor(input wire         clk,             // main clock
     
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
                                (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
-                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0));
+                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])));
     
     assign LTU_within_A = (x2m_bus_A[19]) && 
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
-                          ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18])) || (d2x_bus_A[15:12]==4'b0)) &&
+                          ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18]))) &&
                           (~LTU_between_XB_DA);
+
     assign LTU_within_B = (x2m_bus_B[19]) && 
                           (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
-                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) 
+                          ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18]))) 
                           && (~B_need_A);
+
     assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
                                (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_A[27:25])) || 
-                               ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18])) || (d2x_bus_B[15:12]==4'b0)) &&
+                               ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18]))) &&
                                (~LTU_within_B) && 
                                (~B_need_A);
 
@@ -447,7 +449,7 @@ module lc4_processor(input wire         clk,             // main clock
                              16'h0000;
     assign wm_or_mm_bypass_res_B = WB_MB_bypass ? write_back_B :
                              WA_MB_bypass ? write_back_A :
-                             MA_MB_bypass ? m_B_o_A :
+                             MA_MB_bypass ? m_O_o_A :
                              (m2w_bus_B[18])? m_B_o_B:
                              16'h0000;
     
@@ -476,28 +478,31 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       if ($time >= 4700 && $time <=5200) begin
-        $display("=============================================");
-        $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
-                $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
-        $display("x_br_taken_or_ctrl_A %h, o_alu_result_A %h, x_br_taken_or_ctrl_B %h, o_alu_result_B %h \n", x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B);
-        $display("branch_taken_A %b, x2m_bus_A %h, o_nzp_reg_val_A %h \n", branch_taken_A, x2m_bus_A, o_nzp_reg_val_A);
-        $display("branch_taken_B %b, x2m_bus_B %h, o_nzp_reg_val_B %h \n", branch_taken_B, x2m_bus_B, o_nzp_reg_val_B);
-        $display("test_stall_A %h, test_stall_B %h \n", test_stall_A, test_stall_B);
-        $display("o_dmem_addr %h, o_dmem_towrite %h, o_dmem_we %h \n", o_dmem_addr, o_dmem_towrite, o_dmem_we);
-        $display("test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
-                test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
-        $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
-        $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
-        $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h \n", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
-        $display("LTU_A %b, LTBr_A %b, LTU_B %b, LTBr_B %b, B_need_A %b, mem_hazard %b, d_stall_i_A %b, d_stall_i_B %b \n", LTU_A, LTBr_A, LTU_B, LTBr_B, B_need_A, mem_hazard, d_stall_i_A, d_stall_i_B);
-        $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
-        $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
-        $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
+    //    if ($time >= 7500 && $time <=8000) begin
+        // $display("=============================================");
+        // $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
+        //         $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
+        // $display("x_br_taken_or_ctrl_A %h, o_alu_result_A %h, x_br_taken_or_ctrl_B %h, o_alu_result_B %h \n", x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B);
+        // $display("branch_taken_A %b, x2m_bus_A %h, o_nzp_reg_val_A %h \n", branch_taken_A, x2m_bus_A, o_nzp_reg_val_A);
+        // $display("branch_taken_B %b, x2m_bus_B %h, o_nzp_reg_val_B %h \n", branch_taken_B, x2m_bus_B, o_nzp_reg_val_B);
+        // $display("test_stall_A %h, test_stall_B %h \n", test_stall_A, test_stall_B);
+        // $display("o_dmem_addr %h, o_dmem_towrite %h, o_dmem_we %h \n", o_dmem_addr, o_dmem_towrite, o_dmem_we);
+        // $display("test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
+        //         test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
+        // $display("x_br_taken_or_ctrl_A %b, o_alu_result_A %h, x_br_taken_or_ctrl_B %b, o_alu_result_B %h, stall_A %b, f2d_pc_A %h, pipe_switch %b, f2d_pc_plus_one_A %h, f2d_pc_plus_two_A %h \n", x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B, stall_A, f2d_pc_A, pipe_switch, f2d_pc_plus_one_A, f2d_pc_plus_two_A);         
+    //     $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
+        // $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
+        // $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h \n", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
+        // $display("WRITEBACK_B: w_o_pc_plus_one_B %h, w_D_o_B %h, w_O_o_B %h \n", w_o_pc_plus_one_B, w_D_o_B, w_O_o_B);
+        // $display("LTU_A %b, LTBr_A %b, LTU_B %b, LTBr_B %b, B_need_A %b, mem_hazard %b, d_stall_i_A %b, d_stall_i_B %b \n", LTU_A, LTBr_A, LTU_B, LTBr_B, B_need_A, mem_hazard, d_stall_i_A, d_stall_i_B);
+        // $display("LTU_within_A %b, LTU_between_XB_DA %b \n", LTU_within_A, LTU_between_XB_DA);
+        // $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
+        // $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
+        // $display("x_flush_B %b, stall_B %b,  pipe_switch %b, x_br_taken_or_ctrl_B %b, x_br_taken_or_ctrl_A %b, LTBr_A %b, LTBr_B %b", x_flush_B, stall_B,  pipe_switch, x_br_taken_or_ctrl_B, x_br_taken_or_ctrl_A, LTBr_A, LTBr_B);
         
-        $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
+        // $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
         
-       end
+    //    end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
