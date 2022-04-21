@@ -40,17 +40,14 @@ module lc4_processor(input wire         clk,             // main clock
                      );
    /***  YOUR CODE HERE ***/
    // Instruction Registers
-    assign led_data = switch_data;
-        
-    wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
-    wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B; 
+    assign led_data = switch_data; 
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
-    wire    LTU_A, LTU_B, LTU_within_A, LTU_within_B, 
-            LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
-    wire    mem_hazard, B_need_A;
-    wire    x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
-    wire    pipe_switch;
-
+    wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
+    wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
+    wire LTU_A, LTU_B, LTU_within_A, LTU_within_B, LTU_between_XA_DB, LTU_between_XB_DA, LTU_between_DA_DB;
+    wire mem_hazard, B_need_A;
+    wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
+    wire pipe_switch;
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
     Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_A), .out(x2m_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
     Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
@@ -168,11 +165,11 @@ module lc4_processor(input wire         clk,             // main clock
 
     Nbit_reg #(3, 3'b000) nzp_used_reg (.in(i_nzp_used), .out(o_nzp_used), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     assign i_nzp_used = m2w_bus_B[21] ? o_nzp_reg_val_B:
-                        m2w_bus_A[21] ? o_nzp_reg_val_A:
-                        o_nzp_used;
+                       m2w_bus_A[21] ? o_nzp_reg_val_A:
+                       o_nzp_used;
 
     assign is_all_zero_A = i_nzp_used & x2m_bus_A[11:9];
-    assign branch_taken_A = ((~is_all_zero_A) && (x2m_bus_A[17])) ? 1'b1 : 1'b0;
+    assign branch_taken_A = ((is_all_zero_A != 3'b0) && (x2m_bus_A[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_A = branch_taken_A || x2m_bus_A[16];
 
     assign next_pc_A =  x_br_taken_or_ctrl_A ? o_alu_result_A :
@@ -297,8 +294,7 @@ module lc4_processor(input wire         clk,             // main clock
 
         .i_rd_B(w_o_bus_B[27:25]),
         .i_wdata_B(write_back_B),
-        .i_rd_we_B(w_o_bus_B[22])
-        );
+        .i_rd_we_B(w_o_bus_B[22]));
 
     wire [15:0] o_alu_result_A, o_alu_result_B;
 
