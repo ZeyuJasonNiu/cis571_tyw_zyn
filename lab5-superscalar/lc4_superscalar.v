@@ -131,7 +131,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_B = ((d2x_bus_B[15:0] == 16'h0000) && (d2x_pc_B == 16'h0000)) ? 2'd2 : d_stall_i_B;
     assign m_stall_i_B = (x_br_taken_or_ctrl_A == 1) ? 2'd2 : x_stall_o_B;
 
-
+    // Flush Logic //
     wire d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
@@ -249,7 +249,8 @@ module lc4_processor(input wire         clk,             // main clock
         .is_store(d2x_bus_A[18]),
         .is_branch(d2x_bus_A[17]), 
         .is_control_insn(d2x_bus_A[16]),
-        .insn(d2x_bus_tmp_A));
+        .insn(d2x_bus_tmp_A)
+        );
     
     lc4_decoder Decoder_Pipe_B(
         .r1sel(d2x_bus_B[33:31]), 
@@ -264,7 +265,8 @@ module lc4_processor(input wire         clk,             // main clock
         .is_store(d2x_bus_B[18]),
         .is_branch(d2x_bus_B[17]), 
         .is_control_insn(d2x_bus_B[16]),
-        .insn(d2x_bus_tmp_B));
+        .insn(d2x_bus_tmp_B)
+        );
     
     wire [15:0] o_regfile_rs_A, o_regfile_rs_B, o_regfile_rt_A, o_regfile_rt_B;             //output of ALU
     wire [15:0] rs_bypass_res_A, rs_bypass_res_B, 
@@ -292,7 +294,8 @@ module lc4_processor(input wire         clk,             // main clock
 
         .i_rd_B(w_o_bus_B[27:25]),
         .i_wdata_B(write_back_B),
-        .i_rd_we_B(w_o_bus_B[22]));
+        .i_rd_we_B(w_o_bus_B[22])
+        );
 
     wire [15:0] o_alu_result_A, o_alu_result_B;
 
