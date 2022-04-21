@@ -162,12 +162,10 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'b0)    d_pc_plus_one_reg_A (.in(d_i_pc_plus_one_A), .out(d2x_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
     Nbit_reg #(16, 16'b0)    x_pc_plus_one_reg_A (.in(d2x_pc_plus_one_A), .out(x2m_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
     Nbit_reg #(16, 16'b0)    m_pc_plus_one_reg_A (.in(x2m_pc_plus_one_A), .out(m2w_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
-    Nbit_reg #(16, 16'b0)    w_pc_plus_one_reg_A (.in(m2w_pc_plus_one_A), .out(w_o_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
     Nbit_reg #(16, 16'b0)    d_pc_plus_one_reg_B (.in(d_i_pc_plus_one_B), .out(d2x_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
     Nbit_reg #(16, 16'b0)    x_pc_plus_one_reg_B (.in(d2x_pc_plus_one_B), .out(x2m_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
     Nbit_reg #(16, 16'b0)    m_pc_plus_one_reg_B (.in(x2m_pc_plus_one_B), .out(m2w_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
-    Nbit_reg #(16, 16'b0)    w_pc_plus_one_reg_B (.in(m2w_pc_plus_one_B), .out(w_o_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
     cla16 Pipeline_A_PC_Inc_One(.a(f2d_pc_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one_A));
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
