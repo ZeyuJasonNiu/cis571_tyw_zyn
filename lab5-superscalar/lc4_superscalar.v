@@ -131,7 +131,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign x_stall_i_B = ((d2x_bus_B[15:0] == 16'h0000) && (d2x_pc_B == 16'h0000)) ? 2'd2 : d_stall_i_B;
     assign m_stall_i_B = (x_br_taken_or_ctrl_A == 1) ? 2'd2 : x_stall_o_B;
 
-    // Flush Logic //
+    // Flush Logic
     wire d_flush_A, x_flush_A, d_flush_B, x_flush_B, m_flush_B;
 
     assign d_flush_A = x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B;
@@ -186,7 +186,7 @@ module lc4_processor(input wire         clk,             // main clock
                       f2d_pc_plus_one_A;
 
     assign is_all_zero_B = i_nzp_used & x2m_bus_B[11:9];
-    assign branch_taken_B = ((~is_all_zero_B) && (x2m_bus_B[17])) ? 1'b1 : 1'b0;
+    assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
     
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
@@ -230,10 +230,10 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_B_W_PC_Inc_One(.a(w_o_pc_B), .b(16'b0), .cin(1'b1), .sum(w_o_pc_plus_one_B));
 
     assign  write_back_A = (w_o_bus_A[20]) ? w_o_pc_plus_one_A :
-                           (w_o_bus_A[19]) ? w_D_o_A: 
+                           (w_o_bus_A[19] == 1) ? w_D_o_A: 
                            w_O_o_A;
     assign  write_back_B = (w_o_bus_B[20]) ? w_o_pc_plus_one_B :
-                           (w_o_bus_B[19]) ? w_D_o_B : 
+                           (w_o_bus_B[19] == 1) ? w_D_o_B : 
                            w_O_o_B;
 
     lc4_decoder Decoder_Pipe_A(
