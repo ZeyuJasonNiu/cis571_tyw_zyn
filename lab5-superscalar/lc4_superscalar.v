@@ -416,55 +416,108 @@ module lc4_processor(input wire         clk,             // main clock
                                     nzp_alu_B;
     
     // MX, WX bypass
-    wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
-         rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
-         rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
-         rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
+    // wire rs_MB_XA_bypass, rs_MA_XA_bypass, rs_WB_XA_bypass, rs_WA_XA_bypass, 
+    //      rt_MB_XA_bypass, rt_MA_XA_bypass, rt_WB_XA_bypass, rt_WA_XA_bypass,
+    //      rs_MB_XB_bypass, rs_MA_XB_bypass, rs_WB_XB_bypass, rs_WA_XB_bypass,
+    //      rt_MB_XB_bypass, rt_MA_XB_bypass, rt_WB_XB_bypass, rt_WA_XB_bypass;
+
+    /*
+        No bypass: 000;
+        mx bypass from A: 001;
+        wx bypass from A: 010;
+        mx bypass from B: 101;
+        wx bypass from B: 110;    
+    */
+
+    wire [2:0] wmx_bypass_rs_A, wmx_bypass_rt_A, wmx_bypass_rs_B, wmx_bypass_rt_B; 
     
-    assign rs_MB_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[24]);
-    assign rs_MA_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[24]);
-    assign rs_WB_XA_bypass = (x2m_bus_A[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[24]);
-    assign rs_WA_XA_bypass = (x2m_bus_A[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[24]);
-
-    assign rt_MB_XA_bypass = (x2m_bus_A[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[23]);
-    assign rt_MA_XA_bypass = (x2m_bus_A[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[23]);
-    assign rt_WB_XA_bypass = (x2m_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[23]);
-    assign rt_WA_XA_bypass = (x2m_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[23]);
-
-    assign rs_MB_XB_bypass = (x2m_bus_B[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[24]);
-    assign rs_MA_XB_bypass = (x2m_bus_B[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[24]);
-    assign rs_WB_XB_bypass = (x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[24]);
-    assign rs_WA_XB_bypass = (x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[24]);
-
-    assign rt_MB_XB_bypass = (x2m_bus_B[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[23]);
-    assign rt_MA_XB_bypass = (x2m_bus_B[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[23]);
-    assign rt_WB_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23]);
-    assign rt_WA_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23]);
+    assign wmx_bypass_rs_A =    ((x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[24])) ? 3'b101 : 
+                                ((x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[24])) ? 3'b001 :
+                                ((x2m_bus_A[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[24])) ? 3'b110 :
+                                ((x2m_bus_A[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[24])) ? 3'b010 :
+                                3'b000;
+    assign wmx_bypass_rt_A =    ((x2m_bus_A[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[23])) ? 3'b101 : 
+                                ((x2m_bus_A[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[23])) ? 3'b001 :
+                                ((x2m_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[23])) ? 3'b110 :
+                                ((x2m_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[23])) ? 3'b010 :
+                                3'b000;
+    assign wmx_bypass_rs_B =    ((x2m_bus_B[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[24])) ? 3'b101 : 
+                                ((x2m_bus_B[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[24])) ? 3'b001 :
+                                ((x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[24])) ? 3'b110 :
+                                ((x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[24])) ? 3'b010 :
+                                3'b000;
+    assign wmx_bypass_rt_B =    ((x2m_bus_B[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b101 : 
+                                ((x2m_bus_B[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b001 :
+                                ((x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b110 :
+                                ((x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b010 :
+                                3'b000;
     
-    assign rs_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
-                                rs_MB_XA_bypass ? m_O_o_B :
-                                rs_MA_XA_bypass ? m_O_o_A :
-                                rs_WB_XA_bypass ? write_back_B :
-                                rs_WA_XA_bypass ? write_back_A : 
+    assign rs_bypass_res_A =    (wmx_bypass_rs_A == 3'b000) ? x_A_o_A :
+                                (wmx_bypass_rs_A == 3'b101) ? m_O_o_B :
+                                (wmx_bypass_rs_A == 3'b001) ? m_O_o_A :
+                                (wmx_bypass_rs_A == 3'b010) ? write_back_A :
+                                (wmx_bypass_rs_A == 3'b110) ? write_back_B :
                                 16'h0000;
-    assign rt_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
-                                rt_MB_XA_bypass ? m_O_o_B :
-                                rt_MA_XA_bypass ? m_O_o_A :
-                                rt_WB_XA_bypass ? write_back_B :
-                                rt_WA_XA_bypass ? write_back_A :
+
+    assign rt_bypass_res_A =    (wmx_bypass_rt_A == 3'b000) ? x_A_o_A :
+                                (wmx_bypass_rt_A == 3'b101) ? m_O_o_B :
+                                (wmx_bypass_rt_A == 3'b001) ? m_O_o_A :
+                                (wmx_bypass_rt_A == 3'b010) ? write_back_A :
+                                (wmx_bypass_rt_A == 3'b110) ? write_back_B :
                                 16'h0000;
-    assign rs_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
-                                rs_MB_XB_bypass ? m_O_o_B :
-                                rs_MA_XB_bypass ? m_O_o_A :
-                                rs_WB_XB_bypass ? write_back_B :
-                                rs_WA_XB_bypass ? write_back_A :
+
+    assign rs_bypass_res_B =    (wmx_bypass_rs_B == 3'b000) ? x_A_o_B :
+                                (wmx_bypass_rs_B == 3'b101) ? m_O_o_B :
+                                (wmx_bypass_rs_B == 3'b001) ? m_O_o_A :
+                                (wmx_bypass_rs_B == 3'b010) ? write_back_A :
+                                (wmx_bypass_rs_B == 3'b110) ? write_back_B :
                                 16'h0000;
-    assign rt_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
-                                rs_MB_XB_bypass ? m_O_o_B :
-                                rt_MA_XB_bypass ? m_O_o_A :
-                                rt_WB_XB_bypass ? write_back_B :
-                                rt_WA_XB_bypass ? write_back_A :
-                                16'h0000;
+
+                              
+    // assign rs_MB_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[24]);
+    // assign rs_MA_XA_bypass = (x2m_bus_A[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[24]);
+    // assign rs_WB_XA_bypass = (x2m_bus_A[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[24]);
+    // assign rs_WA_XA_bypass = (x2m_bus_A[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[24]);
+
+    // assign rt_MB_XA_bypass = (x2m_bus_A[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_A[23]);
+    // assign rt_MA_XA_bypass = (x2m_bus_A[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_A[23]);
+    // assign rt_WB_XA_bypass = (x2m_bus_A[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_A[23]);
+    // assign rt_WA_XA_bypass = (x2m_bus_A[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_A[23]);
+
+    // assign rs_MB_XB_bypass = (x2m_bus_B[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[24]);
+    // assign rs_MA_XB_bypass = (x2m_bus_B[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[24]);
+    // assign rs_WB_XB_bypass = (x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[24]);
+    // assign rs_WA_XB_bypass = (x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[24]);
+
+    // assign rt_MB_XB_bypass = (x2m_bus_B[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[23]);
+    // assign rt_MA_XB_bypass = (x2m_bus_B[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[23]);
+    // assign rt_WB_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23]);
+    // assign rt_WA_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23]);
+
+    // assign rs_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
+    //                             rs_MB_XA_bypass ? m_O_o_B :
+    //                             rs_MA_XA_bypass ? m_O_o_A :
+    //                             rs_WB_XA_bypass ? write_back_B :
+    //                             rs_WA_XA_bypass ? write_back_A : 
+    //                             16'h0000;
+    // assign rt_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
+    //                             rt_MB_XA_bypass ? m_O_o_B :
+    //                             rt_MA_XA_bypass ? m_O_o_A :
+    //                             rt_WB_XA_bypass ? write_back_B :
+    //                             rt_WA_XA_bypass ? write_back_A :
+    //                             16'h0000;
+    // assign rs_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
+    //                             rs_MB_XB_bypass ? m_O_o_B :
+    //                             rs_MA_XB_bypass ? m_O_o_A :
+    //                             rs_WB_XB_bypass ? write_back_B :
+    //                             rs_WA_XB_bypass ? write_back_A :
+    //                             16'h0000;
+    // assign rt_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
+    //                             rs_MB_XB_bypass ? m_O_o_B :
+    //                             rt_MA_XB_bypass ? m_O_o_A :
+    //                             rt_WB_XB_bypass ? write_back_B :
+    //                             rt_WA_XB_bypass ? write_back_A :
+    //                             16'h0000;
     
     // WM and MM bypass
     wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
