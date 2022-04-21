@@ -441,26 +441,30 @@ module lc4_processor(input wire         clk,             // main clock
     assign rt_WB_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23]);
     assign rt_WA_XB_bypass = (x2m_bus_B[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23]);
     
-    assign rs_bypass_res_A = rs_MB_XA_bypass ? m_O_o_B :
-                             rs_MA_XA_bypass ? m_O_o_A :
-                             rs_WB_XA_bypass ? write_back_B :
-                             rs_WA_XA_bypass ? write_back_A : 
-                             x_A_o_A;
-    assign rt_bypass_res_A = rt_MB_XA_bypass ? m_O_o_B :
-                             rt_MA_XA_bypass ? m_O_o_A :
-                             rt_WB_XA_bypass ? write_back_B :
-                             rt_WA_XA_bypass ? write_back_A :
-                             x_B_o_A;
-    assign rs_bypass_res_B = rs_MB_XB_bypass ? m_O_o_B :
-                             rs_MA_XB_bypass ? m_O_o_A :
-                             rs_WB_XB_bypass ? write_back_B :
-                             rs_WA_XB_bypass ? write_back_A :
-                             x_A_o_B;
-    assign rt_bypass_res_B = rt_MB_XB_bypass ? m_O_o_B :
-                             rt_MA_XB_bypass ? m_O_o_A :
-                             rt_WB_XB_bypass ? write_back_B :
-                             rt_WA_XB_bypass ? write_back_A :
-                             x_B_o_B;
+    assign rs_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
+                                rs_MB_XA_bypass ? m_O_o_B :
+                                rs_MA_XA_bypass ? m_O_o_A :
+                                rs_WB_XA_bypass ? write_back_B :
+                                rs_WA_XA_bypass ? write_back_A : 
+                                16'h0000;
+    assign rt_bypass_res_A =    ( ~rs_MB_XA_bypass && ~rs_MA_XA_bypass & ~rs_WB_XA_bypass & ~rs_WA_XA_bypass) ? x_A_o_A :
+                                rt_MB_XA_bypass ? m_O_o_B :
+                                rt_MA_XA_bypass ? m_O_o_A :
+                                rt_WB_XA_bypass ? write_back_B :
+                                rt_WA_XA_bypass ? write_back_A :
+                                16'h0000;
+    assign rs_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
+                                rs_MB_XB_bypass ? m_O_o_B :
+                                rs_MA_XB_bypass ? m_O_o_A :
+                                rs_WB_XB_bypass ? write_back_B :
+                                rs_WA_XB_bypass ? write_back_A :
+                                16'h0000;
+    assign rt_bypass_res_B =    ( ~rs_MB_XB_bypass && ~rs_MA_XB_bypass & ~rs_WB_XB_bypass & ~rs_WA_XB_bypass) ? x_A_o_B :
+                                rs_MB_XB_bypass ? m_O_o_B :
+                                rt_MA_XB_bypass ? m_O_o_A :
+                                rt_WB_XB_bypass ? write_back_B :
+                                rt_WA_XB_bypass ? write_back_A :
+                                16'h0000;
     
     // WM and MM bypass
     wire WB_MA_bypass, WA_MA_bypass, WB_MB_bypass, WA_MB_bypass, MA_MB_bypass;
