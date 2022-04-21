@@ -64,7 +64,7 @@ module lc4_processor(input wire         clk,             // main clock
                        stall_A ? d2x_bus_tmp_A :
                        i_cur_insn_A;
     assign d_i_bus_B =  pipe_switch ? i_cur_insn_A : 
-                        stall_B ? d2x_bus_tmp_B :
+                        stall_A ? d2x_bus_tmp_B :
                         i_cur_insn_B;
     
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
