@@ -145,6 +145,9 @@ module lc4_processor(input wire         clk,             // main clock
     wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
     wire [15:0] d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
+    wire [15:0] d_i_pc_plus_one_A, d2x_pc_plus_one_A, x2m_pc_plus_one_A, m2w_pc_plus_one_A, w_o_pc_plus_one_A,
+                d_i_pc_plus_one_B, d2x_pc_plus_one_B, x2m_pc_plus_one_B, m2w_pc_plus_one_B, w_o_pc_plus_one_B;
+
     Nbit_reg #(16, 16'h8200) f_pc_reg_A (.in(next_pc_A), .out(f2d_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
     Nbit_reg #(16, 16'b0)    d_pc_reg_A (.in(d_i_pc_A), .out(d2x_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
     Nbit_reg #(16, 16'b0)    x_pc_reg_A (.in(d2x_pc_A), .out(x2m_pc_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
@@ -156,9 +159,30 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(16, 16'b0)    m_pc_reg_B (.in(x2m_pc_B), .out(m2w_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(16, 16'b0)    w_pc_reg_B (.in(m2w_pc_B), .out(w_o_pc_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
+    Nbit_reg #(16, 16'b0)    d_pc_plus_one_reg_A (.in(d_i_pc_plus_one_A), .out(d2x_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
+    Nbit_reg #(16, 16'b0)    x_pc_plus_one_reg_A (.in(d2x_pc_plus_one_A), .out(x2m_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
+    Nbit_reg #(16, 16'b0)    m_pc_plus_one_reg_A (.in(x2m_pc_plus_one_A), .out(m2w_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(16, 16'b0)    w_pc_plus_one_reg_A (.in(m2w_pc_plus_one_A), .out(w_o_pc_plus_one_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
+
+    Nbit_reg #(16, 16'b0)    d_pc_plus_one_reg_B (.in(d_i_pc_plus_one_B), .out(d2x_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_B));
+    Nbit_reg #(16, 16'b0)    x_pc_plus_one_reg_B (.in(d2x_pc_plus_one_B), .out(x2m_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_B));
+    Nbit_reg #(16, 16'b0)    m_pc_plus_one_reg_B (.in(x2m_pc_plus_one_B), .out(m2w_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
+    Nbit_reg #(16, 16'b0)    w_pc_plus_one_reg_B (.in(m2w_pc_plus_one_B), .out(w_o_pc_plus_one_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
+
     cla16 Pipeline_A_PC_Inc_One(.a(f2d_pc_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_one_A));
     cla16 Pipeline_A_PC_Inc_Two(.a(f2d_pc_plus_one_A), .b(16'b0), .cin(1'b1), .sum(f2d_pc_plus_two_A));
 
+    assign o_cur_pc = f2d_pc_A;
+    assign d_i_pc_plus_one_A =  pipe_switch ? d2x_pc_plus_one_B : 
+                                stall_A ? d2x_pc_plus_one_B:
+                                f2d_pc_plus_one_A;
+    assign d_i_pc_plus_one_B =  pipe_switch ? d2x_pc_plus_one_A : 
+                                stall_B ? d2x_pc_plus_one_B:
+                                f2d_pc_plus_two_A;
+
+
+
+    // Branch taken or not
     wire [2:0] is_all_zero_A, is_all_zero_B;
     wire [2:0] o_nzp_reg_val_A, o_nzp_reg_val_B;
     wire [2:0] i_nzp_used, o_nzp_used;
@@ -390,7 +414,7 @@ module lc4_processor(input wire         clk,             // main clock
                         (x2m_pc_B == 0) ? 3'b010: 
                         3'b100;  
     assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
-                                    ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
+                                    ((m2w_bus_B[19]) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
                                     nzp_alu_B;
     
     // MX, WX bypass
@@ -458,9 +482,6 @@ module lc4_processor(input wire         clk,             // main clock
                              MA_MB_bypass ? m_O_o_A :
                              (m2w_bus_B[18])? m_B_o_B:
                              16'h0000;
-    
-    assign o_cur_pc = f2d_pc_A;
-
     assign o_dmem_towrite = (m2w_bus_A[18]) ? wm_bypass_res_A : 
                             (m2w_bus_B[18]) ? wm_or_mm_bypass_res_B:
                             16'h0000;
