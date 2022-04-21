@@ -446,10 +446,10 @@ module lc4_processor(input wire         clk,             // main clock
                                 ((x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[24])) ? 3'b110 :
                                 ((x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[24])) ? 3'b010 :
                                 3'b000;
-    assign wmx_bypass_rt_B =    ((x2m_bus_B[33:31] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b101 : 
-                                ((x2m_bus_B[33:31] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b001 :
-                                ((x2m_bus_B[33:31] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b110 :
-                                ((x2m_bus_B[33:31] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b010 :
+    assign wmx_bypass_rt_B =    ((x2m_bus_B[30:28] == m2w_bus_B[27:25]) && (m2w_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b101 : 
+                                ((x2m_bus_B[30:28] == m2w_bus_A[27:25]) && (m2w_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b001 :
+                                ((x2m_bus_B[30:28] == w_o_bus_B[27:25]) && (w_o_bus_B[22] == 1) && (x2m_bus_B[23])) ? 3'b110 :
+                                ((x2m_bus_B[30:28] == w_o_bus_A[27:25]) && (w_o_bus_A[22] == 1) && (x2m_bus_B[23])) ? 3'b010 :
                                 3'b000;
     
     assign rs_bypass_res_A =    (wmx_bypass_rs_A == 3'b000) ? x_A_o_A :
@@ -458,19 +458,23 @@ module lc4_processor(input wire         clk,             // main clock
                                 (wmx_bypass_rs_A == 3'b010) ? write_back_A :
                                 (wmx_bypass_rs_A == 3'b110) ? write_back_B :
                                 16'h0000;
-
     assign rt_bypass_res_A =    (wmx_bypass_rt_A == 3'b000) ? x_A_o_A :
                                 (wmx_bypass_rt_A == 3'b101) ? m_O_o_B :
                                 (wmx_bypass_rt_A == 3'b001) ? m_O_o_A :
                                 (wmx_bypass_rt_A == 3'b010) ? write_back_A :
                                 (wmx_bypass_rt_A == 3'b110) ? write_back_B :
                                 16'h0000;
-
     assign rs_bypass_res_B =    (wmx_bypass_rs_B == 3'b000) ? x_A_o_B :
                                 (wmx_bypass_rs_B == 3'b101) ? m_O_o_B :
                                 (wmx_bypass_rs_B == 3'b001) ? m_O_o_A :
                                 (wmx_bypass_rs_B == 3'b010) ? write_back_A :
                                 (wmx_bypass_rs_B == 3'b110) ? write_back_B :
+                                16'h0000;
+    assign rt_bypass_res_B =    (wmx_bypass_rt_B == 3'b000) ? x_A_o_B :
+                                (wmx_bypass_rt_B == 3'b101) ? m_O_o_B :
+                                (wmx_bypass_rt_B == 3'b001) ? m_O_o_A :
+                                (wmx_bypass_rt_B == 3'b010) ? write_back_A :
+                                (wmx_bypass_rt_B == 3'b110) ? write_back_B :
                                 16'h0000;
 
                               
