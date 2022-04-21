@@ -571,17 +571,18 @@ module lc4_processor(input wire         clk,             // main clock
         $display("x_br_taken_or_ctrl_A %h, o_alu_result_A %h, x_br_taken_or_ctrl_B %h, o_alu_result_B %h \n", x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B);
         $display("branch_taken_A %b, x2m_bus_A %h, o_nzp_reg_val_A %h \n", branch_taken_A, x2m_bus_A, o_nzp_reg_val_A);
         $display("branch_taken_B %b, x2m_bus_B %h, o_nzp_reg_val_B %h \n", branch_taken_B, x2m_bus_B, o_nzp_reg_val_B);
-        $display("test_stall_A %h, test_stall_B %h \n", test_stall_A, test_stall_B);
+        // $display("test_stall_A %h, test_stall_B %h \n", test_stall_A, test_stall_B);
         $display("o_dmem_addr %h, o_dmem_towrite %h, o_dmem_we %h \n", o_dmem_addr, o_dmem_towrite, o_dmem_we);
         $display("test_regfile_data_A %h, test_regfile_data_B %h, i_cur_dmem_data %h, o_alu_result_A %h, o_alu_result_B %h \n", 
                 test_regfile_data_A, test_regfile_data_B, i_cur_dmem_data, o_alu_result_A, o_alu_result_B);
         $display("x_br_taken_or_ctrl_A %b, o_alu_result_A %h, x_br_taken_or_ctrl_B %b, o_alu_result_B %h, stall_A %b, f2d_pc_A %h, pipe_switch %b, f2d_pc_plus_one_A %h, f2d_pc_plus_two_A %h \n", 
         x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B, stall_A, f2d_pc_A, pipe_switch, f2d_pc_plus_one_A, f2d_pc_plus_two_A);         
         // $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
-        // $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
+        $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
         // $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h \n", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
         // $display("WRITEBACK_B: w_o_pc_plus_one_B %h, w_D_o_B %h, w_O_o_B %h \n", w_o_pc_plus_one_B, w_D_o_B, w_O_o_B);
-        // $display("LTU_A %b, LTBr_A %b, LTU_B %b, LTBr_B %b, B_need_A %b, mem_hazard %b, d_stall_i_A %b, d_stall_i_B %b \n", LTU_A, LTBr_A, LTU_B, LTBr_B, B_need_A, mem_hazard, d_stall_i_A, d_stall_i_B);
+        // $display("LTU_A %b, LTBr_A %b, LTU_B %b, LTBr_B %b, B_need_A %b, mem_hazard %b, d_stall_i_A %b, d_stall_i_B %b \n", 
+        // LTU_A, LTBr_A, LTU_B, LTBr_B, B_need_A, mem_hazard, d_stall_i_A, d_stall_i_B);
         // $display("LTU_within_A %b, LTU_between_XB_DA %b \n", LTU_within_A, LTU_between_XB_DA);
         // $display("STALL_B: %b, %b, %b, %b \n", d_stall_o_B, x_stall_o_B, m_stall_o_B, test_stall_B);
         // $display("INSTR_B: %h, %h, %h, %h \n", d2x_bus_tmp_B, x2m_bus_B, m2w_bus_B, w_o_bus_B);
