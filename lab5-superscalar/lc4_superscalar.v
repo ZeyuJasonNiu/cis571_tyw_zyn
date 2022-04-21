@@ -252,10 +252,10 @@ module lc4_processor(input wire         clk,             // main clock
     cla16 Pipeline_B_W_PC_Inc_One(.a(w_o_pc_B), .b(16'b0), .cin(1'b1), .sum(w_o_pc_plus_one_B));
 
     assign  write_back_A = (w_o_bus_A[20]) ? w_o_pc_plus_one_A :
-                           (w_o_bus_A[19] == 1) ? w_D_o_A: 
+                           (w_o_bus_A[19]) ? w_D_o_A: 
                            w_O_o_A;
     assign  write_back_B = (w_o_bus_B[20]) ? w_o_pc_plus_one_B :
-                           (w_o_bus_B[19] == 1) ? w_D_o_B : 
+                           (w_o_bus_B[19]) ? w_D_o_B : 
                            w_O_o_B;
 
     lc4_decoder Decoder_Pipe_A(
@@ -564,7 +564,7 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-       if ($time >= 300 && $time <=1500) begin
+       if ($time >= 300 && $time <=1200) begin
         $display("\n================== CYCLE%d \t====================\n", ($time-106)/40);
         $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
                 $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
