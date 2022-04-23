@@ -479,7 +479,7 @@ module lc4_processor(input wire         clk,             // main clock
     */
    always @(posedge gwe) begin
     if ($time >= 23100 && $time <=23800) begin
-        $display("===================Cycle %d=====================", ($time-100)/40);
+        $display("===================Cycle %d=====================\n\n", ($time-100)/40);
         $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
         $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
         // $display("x_br_taken_or_ctrl_A %h, o_alu_result_A %h, x_br_taken_or_ctrl_B %h, o_alu_result_B %h \n", x_br_taken_or_ctrl_A, o_alu_result_A, x_br_taken_or_ctrl_B, o_alu_result_B);
