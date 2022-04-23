@@ -478,7 +478,7 @@ module lc4_processor(input wire         clk,             // main clock
     * to conditionally print out information.
     */
    always @(posedge gwe) begin
-        //    if ($time >= 23100 && $time <=23800) begin
+    if ($time >= 23100 && $time <=23800) begin
         $display("===================Cycle %d=====================", ($time-100)/40);
         $display("Time = %d, o_cur_pc = %h, next_pc_A %h, i_cur_insn_A = %h, i_cur_insn_B = %h, test_cur_insn_A = %h, test_cur_insn_B = %h \n", 
         $time, o_cur_pc, next_pc_A, i_cur_insn_A, i_cur_insn_B, test_cur_insn_A, test_cur_insn_B);
@@ -503,7 +503,7 @@ module lc4_processor(input wire         clk,             // main clock
         
         // $display("rs_bypass_res_A %h, rs_bypass_res_B %h, rt_bypass_res_A %h, rt_bypass_res_B %h \n", rs_bypass_res_A, rs_bypass_res_B, rt_bypass_res_A, rt_bypass_res_B);
         
-    //    end
+    end
       // $display("%d %h %h %h %h %h", $time, f_pc, d_pc, e_pc, m_pc, test_cur_pc);
       // if (o_dmem_we)
       //   $display("%d STORE %h <= %h", $time, o_dmem_addr, o_dmem_towrite);
