@@ -38,9 +38,11 @@ module lc4_processor(input wire         clk,             // main clock
                      input  wire [ 7:0] switch_data,         // read on/off status of zedboard's 8 switches
                      output wire [ 7:0] led_data             // set on/off status of zedboard's 8 leds
                      );
+
    /***  YOUR CODE HERE ***/
    // Instruction Registers
     assign led_data = switch_data; 
+
     wire [15:0] d_i_bus_A, d2x_bus_tmp_A, d_i_bus_B, d2x_bus_tmp_B;
     wire [33:0] d2x_bus_A, d2x_bus_final_A, x2m_bus_A, m2w_bus_A, w_o_bus_A;
     wire [33:0] d2x_bus_B, d2x_bus_final_B, x2m_bus_B, m2w_bus_B, w_o_bus_B;
@@ -48,6 +50,7 @@ module lc4_processor(input wire         clk,             // main clock
     wire mem_hazard, B_need_A;
     wire x_br_taken_or_ctrl_A, branch_taken_A, x_br_taken_or_ctrl_B, branch_taken_B; 
     wire pipe_switch;
+
     Nbit_reg #(16, 16'b0) d_insn_reg_A (.in(d_i_bus_A), .out(d2x_bus_tmp_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | d_flush_A));
     Nbit_reg #(34, 34'b0) x_insn_reg_A (.in(d2x_bus_A), .out(x2m_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | x_flush_A));
     Nbit_reg #(34, 34'b0) m_insn_reg_A (.in(x2m_bus_A), .out(m2w_bus_A), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
@@ -185,7 +188,14 @@ module lc4_processor(input wire         clk,             // main clock
                       stall_B ? d2x_pc_B :
                       f2d_pc_plus_one_A;
 
-    assign is_all_zero_B = i_nzp_used & x2m_bus_B[11:9];
+    // assign is_all_zero_B = i_nzp_used & x2m_bus_B[11:9];
+    assign is_all_zero_B =  (i_nzp_used[0] & x2m_bus_B[11:9] == 3'b001) | 
+                            (i_nzp_used[1] & x2m_bus_B[11:9] == 3'b010) |
+                            (i_nzp_used[2] & x2m_bus_B[11:9] == 3'b100) |
+                            ((i_nzp_used[0]|i_nzp_used[1]) & x2m_bus_B[11:9] == 3'b011) |
+                            ((i_nzp_used[0]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b101) |
+                            ((i_nzp_used[1]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b110) |
+                            ((i_nzp_used[0]|i_nzp_used[1]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b111) |;
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
     
@@ -359,6 +369,17 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(3, 3'b0) w_nzp_reg_B (.in(w_nzp_i_B), .out(test_nzp_new_bits_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    
    
+    // assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
+    // assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
+    //                    (o_alu_result_A == 0) ? 3'b010 : 
+    //                    3'b100;
+    // assign nzp_ld_A = ($signed(i_cur_dmem_data) > 0) ? 3'b001 :
+    //                   (i_cur_dmem_data == 0) ? 3'b010 : 
+    //                   3'b100;  
+    // assign nzp_trap_A = ($signed(x2m_pc_A) > 0) ? 3'b001:
+    //                     (x2m_pc_A == 0) ? 3'b010: 
+    //                     3'b100;
+
     assign w_nzp_i_A = ((m2w_bus_A[19]==1)) ? nzp_ld_A : m_nzp_o_A;
     assign nzp_alu_A = ($signed(o_alu_result_A) > 0) ? 3'b001 : 
                        (o_alu_result_A == 0) ? 3'b010 : 
