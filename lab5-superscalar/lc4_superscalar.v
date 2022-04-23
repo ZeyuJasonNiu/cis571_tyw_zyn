@@ -502,12 +502,12 @@ module lc4_processor(input wire         clk,             // main clock
                                 rs_MA_XA_bypass ? m_O_o_A :
                                 rs_WB_XA_bypass ? write_back_B :
                                 rs_WA_XA_bypass ? write_back_A : 
-                                x_A_o_A :;
+                                x_A_o_A ;
     assign rt_bypass_res_A =    rt_MB_XA_bypass ? m_O_o_B :
                                 rt_MA_XA_bypass ? m_O_o_A :
                                 rt_WB_XA_bypass ? write_back_B :
                                 rt_WA_XA_bypass ? write_back_A :
-                                x_A_o_A :;
+                                x_A_o_A ;
     assign rs_bypass_res_B =    rs_MB_XB_bypass ? m_O_o_B :
                                 rs_MA_XB_bypass ? m_O_o_A :
                                 rs_WB_XB_bypass ? write_back_B :
