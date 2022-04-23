@@ -58,7 +58,7 @@ module lc4_processor(input wire         clk,             // main clock
     Nbit_reg #(34, 34'b0) m_insn_reg_B (.in(x2m_bus_B), .out(m2w_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst | m_flush_B));
     Nbit_reg #(34, 34'b0) w_insn_reg_B (.in(m2w_bus_B), .out(w_o_bus_B), .clk(clk), .we(1'b1), .gwe(gwe), .rst(1'b0));
 
-    assign pipe_switch = ~x_flush_A && (B_need_A || mem_hazard || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);
+    assign pipe_switch = ~x_flush_A && ((B_need_A || mem_hazard) || (LTU_B && ~B_need_A && ~mem_hazard) || LTBr_B);
 
     assign d_i_bus_A = pipe_switch ? d2x_bus_tmp_B : 
                        stall_A ? d2x_bus_tmp_A :
