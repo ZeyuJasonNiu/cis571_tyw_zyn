@@ -104,9 +104,9 @@ module lc4_processor(input wire         clk,             // main clock
                                (~LTU_B_tmp2) && 
                                (~LTU_B_tmp3);
 
-    assign B_need_A = ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
-                       ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
-                       (d2x_bus_B[17] && d2x_bus_A[21]);
+    assign B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
+                        ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
+                        (d2x_bus_B[17] && d2x_bus_A[21]);
     
     assign LTU_B_tmp1 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
                        ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
