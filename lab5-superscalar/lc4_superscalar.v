@@ -188,14 +188,7 @@ module lc4_processor(input wire         clk,             // main clock
                       stall_B ? d2x_pc_B :
                       f2d_pc_plus_one_A;
 
-    // assign is_all_zero_B = i_nzp_used & x2m_bus_B[11:9];
-    assign is_all_zero_B =  (i_nzp_used[0] & x2m_bus_B[11:9] == 3'b001) | 
-                            (i_nzp_used[1] & x2m_bus_B[11:9] == 3'b010) |
-                            (i_nzp_used[2] & x2m_bus_B[11:9] == 3'b100) |
-                            ((i_nzp_used[0]|i_nzp_used[1]) & x2m_bus_B[11:9] == 3'b011) |
-                            ((i_nzp_used[0]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b101) |
-                            ((i_nzp_used[1]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b110) |
-                            ((i_nzp_used[0]|i_nzp_used[1]|i_nzp_used[2]) & x2m_bus_B[11:9] == 3'b111) ;
+    assign is_all_zero_B = i_nzp_used & x2m_bus_B[11:9];
     assign branch_taken_B = ((is_all_zero_B != 3'b0) && (x2m_bus_B[17] == 1)) ? 1'b1 : 1'b0;
     assign x_br_taken_or_ctrl_B = branch_taken_B || x2m_bus_B[16];
     
