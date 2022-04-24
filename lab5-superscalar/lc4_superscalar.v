@@ -26,7 +26,7 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [15:0] test_regfile_data_B,
                      output wire        test_nzp_we_A,       // nzp register write enable
                      output wire        test_nzp_we_B,
-                     output wire [ 2:0] test_nzp_new_bits_A, // new nzp bits
+                     output wire [ 2:0] test_nzp_new_b its_A, // new nzp bits
                      output wire [ 2:0] test_nzp_new_bits_B,
                      output wire        test_dmem_we_A,      // data memory write enable
                      output wire        test_dmem_we_B,
@@ -84,25 +84,7 @@ module lc4_processor(input wire         clk,             // main clock
                           ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (!d2x_bus_A[18]))) &&
                           (~LTU_A_tmp1));
 
-    // assign LTU_within_B = (x2m_bus_B[19]) && 
-    //                       (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
-    //                       ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18]))) 
-    //                       && (~B_need_A);
-    // assign LTU_within_B = (x2m_bus_B[19]) && 
-    //                       (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
-    //                       ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_B[18]))) 
-    //                       && (~LTU_B_tmp1);
-
-    // assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
-    //                            (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_A[27:25])) || 
-    //                            ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18]))) &&
-    //                            (~LTU_within_B) && 
-    //                            (~B_need_A);
-    // assign LTU_between_XA_DB = (x2m_bus_A[19]) && 
-    //                            (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_A[27:25])) || 
-    //                            ((d2x_bus_B[23]) && (d2x_bus_B[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_B[18]))) &&
-    //                            (~LTU_B_tmp2) && 
-    //                            (~LTU_B_tmp3);
+    
     assign LTU_B = ( 
       (x2m_bus_B[19] & (((d2x_bus_B[33:31] == x2m_bus_B[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_B[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) )
                            & ~(( ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] ) | ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23] ) ) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_B[27:25])) )   // nullified
@@ -337,6 +319,7 @@ module lc4_processor(input wire         clk,             // main clock
         .i_r1data(rs_bypass_res_B),
         .i_r2data(rt_bypass_res_B),
         .o_result(o_alu_result_B));
+
     
     //  Register for dmem parameter's
     wire [15:0] o_dmem_addr_A, o_dmem_addr_B, w_dmem_data_o_A, w_dmem_data_o_B;
@@ -378,7 +361,8 @@ module lc4_processor(input wire         clk,             // main clock
         .we(x2m_bus_B[21]),
         .gwe(gwe),
         .rst(rst));
-    defparam Superscalar_NZP_Reg_B.n = 3;
+    defparam Superscalar_NZP_Reg_B.n = 3
+     
 
     // Registers for NZP
     wire [2:0] i_regfile_wdata_sign_A, m_nzp_o_A, w_nzp_i_A,
@@ -427,7 +411,7 @@ module lc4_processor(input wire         clk,             // main clock
                         (x2m_pc_B == 0) ? 3'b010: 
                         3'b100;  
     assign i_regfile_wdata_sign_B = (x2m_bus_B[15:12] == 4'b1111) ? nzp_trap_B :  
-                                    ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B : 
+                                    ((m2w_bus_B[19]==1) && (x_stall_o_B == 2'd3)) ? nzp_ld_B :   
                                     nzp_alu_B;
     
     // MX, WX bypass
