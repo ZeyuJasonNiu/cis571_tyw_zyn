@@ -107,7 +107,6 @@ module lc4_processor(input wire         clk,             // main clock
     assign B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
                         ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
                         (d2x_bus_B[17] && d2x_bus_A[21]);
-    
     assign LTU_B_tmp1 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
                        ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
                        (d2x_bus_A[27:25] == x2m_bus_B[27:25]);
@@ -203,8 +202,7 @@ module lc4_processor(input wire         clk,             // main clock
                         x_br_taken_or_ctrl_B ? o_alu_result_B : 
                         stall_A ? f2d_pc_A :
                         pipe_switch ? f2d_pc_plus_one_A :
-                        f2d_pc_plus_two_A;
-    
+                        f2d_pc_plus_two_A;    
     assign d_i_pc_A = (pipe_switch) ? d2x_pc_B :  
                       stall_A ? d2x_pc_A :
                       f2d_pc_A;
