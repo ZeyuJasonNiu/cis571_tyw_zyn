@@ -358,7 +358,7 @@ module lc4_processor(input wire         clk,             // main clock
         .we(x2m_bus_B[21]),
         .gwe(gwe),
         .rst(rst));
-    defparam Superscalar_NZP_Reg_B.n = 3
+    defparam Superscalar_NZP_Reg_B.n = 3;
      
 
     // Registers for NZP
