@@ -583,5 +583,5 @@ module lc4_processor(input wire         clk,             // main clock
       // The Objects pane will update to display the wires
       // in that module.
       //$display();
-   end
+//    end
 endmodule

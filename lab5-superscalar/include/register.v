@@ -6,7 +6,7 @@
  */
 
 `timescale 1ns / 1ps
-//`default_nettype none
+`default_nettype none
 
 /* A parameterized-width positive-edge-trigged register, with synchronous reset. 
    The value to take on after a reset is the 2nd parameter. */
