@@ -26,7 +26,7 @@ module lc4_processor(input wire         clk,             // main clock
                      output wire [15:0] test_regfile_data_B,
                      output wire        test_nzp_we_A,       // nzp register write enable
                      output wire        test_nzp_we_B,
-                     output wire [ 2:0] test_nzp_new_b its_A, // new nzp bits
+                     output wire [ 2:0] test_nzp_new_bits_A, // new nzp bits
                      output wire [ 2:0] test_nzp_new_bits_B,
                      output wire        test_dmem_we_A,      // data memory write enable
                      output wire        test_dmem_we_B,
