@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 // Prevent implicit wire declaration
-// `default_nettype none
+`default_nettype none
 module lc4_processor(input wire         clk,             // main clock
                      input wire         rst,             // global reset
                      input wire         gwe,             // global we for single-step clock
