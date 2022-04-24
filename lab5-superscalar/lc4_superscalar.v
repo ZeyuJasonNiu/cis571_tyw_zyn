@@ -358,8 +358,8 @@ module lc4_processor(input wire         clk,             // main clock
    
     assign test_dmem_data_A = (w_o_bus_A[19]) ? w_D_o_A :
                               (w_o_bus_A[18]) ? w_dmem_data_o_A : 16'b0; 
-    assign test_dmem_data_B = (w_o_bus_B[18]) ? w_D_o_B :
-                              (w_o_bus_B[19]) ? w_dmem_data_o_B : 16'b0;    
+    assign test_dmem_data_B = (w_o_bus_B[19]) ? w_D_o_B :
+                              (w_o_bus_B[18]) ? w_dmem_data_o_B : 16'b0;    
     
     // NZP Registers //
     Nbit_reg Superscalar_NZP_Reg_A(
