@@ -83,28 +83,26 @@ module lc4_processor(input wire         clk,             // main clock
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
                           ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (!d2x_bus_A[18]))) &&
                           (~LTU_A_tmp1));
-
     
     assign LTU_B = ( 
-      (x2m_bus_B[19] & (((d2x_bus_B[33:31] == x2m_bus_B[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_B[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) )
-                           & ~(( ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] ) | ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23] ) ) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_B[27:25])) )   // nullified
-                           | ( (x2m_bus_A[19] & (((d2x_bus_B[33:31] == x2m_bus_A[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_A[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) ) 
-                           & ~(( ((d2x_bus_A[27:25] == d2x_bus_B[33:31])  & d2x_bus_B[24] )| ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_A[27:25]) )      // Nullified;  
-                           & ~(( ((x2m_bus_B[27:25] == d2x_bus_B[33:31])  & d2x_bus_B[24] )| ((x2m_bus_B[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & x2m_bus_B[22] & (x2m_bus_B[27:25] == x2m_bus_A[27:25]) ) )  
-                           ;   
+    (x2m_bus_B[19] & (((d2x_bus_B[33:31] == x2m_bus_B[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_B[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) )
+    & ~((((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24]) | ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_B[27:25])))    // nullified
+    | ((x2m_bus_A[19] & (((d2x_bus_B[33:31] == x2m_bus_A[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_A[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) ) 
+    & ~((((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] )| ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_A[27:25])) // Nullified;  
+    & ~(( ((x2m_bus_B[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] )| ((x2m_bus_B[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & x2m_bus_B[22] & (x2m_bus_B[27:25] == x2m_bus_A[27:25])))  ;   
 
     assign B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
                         ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
                         (d2x_bus_B[17] && d2x_bus_A[21]);
-    assign LTU_B_tmp1 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
-                       ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
-                       (d2x_bus_A[27:25] == x2m_bus_B[27:25]);
-    assign LTU_B_tmp2 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
-                       ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
-                       (d2x_bus_A[27:25] == x2m_bus_A[27:25]);
-    assign LTU_B_tmp3 = ( (x2m_bus_B[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
-                       ( (x2m_bus_B[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && x2m_bus_B[22] &&
-                       (x2m_bus_B[27:25] == x2m_bus_A[27:25]);
+    // assign LTU_B_tmp1 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
+    //                    ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
+    //                    (d2x_bus_A[27:25] == x2m_bus_B[27:25]);
+    // assign LTU_B_tmp2 = ( (d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
+    //                    ( (d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && d2x_bus_A[22] &&
+    //                    (d2x_bus_A[27:25] == x2m_bus_A[27:25]);
+    // assign LTU_B_tmp3 = ( (x2m_bus_B[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] ) || 
+    //                    ( (x2m_bus_B[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] ) && x2m_bus_B[22] &&
+    //                    (x2m_bus_B[27:25] == x2m_bus_A[27:25]);
     
     assign LTU_A = LTU_within_A || LTU_between_XB_DA;
     // assign LTU_B =  LTU_within_B || LTU_between_XA_DB;
@@ -156,7 +154,7 @@ module lc4_processor(input wire         clk,             // main clock
     assign m_flush_B = x_br_taken_or_ctrl_A;
    
     
-    // PC Registers
+    // ****** PC Registers ****** //
     wire [15:0] next_pc_A, f2d_pc_A, d_i_pc_A, d2x_pc_A, x2m_pc_A, m2w_pc_A, w_o_pc_A; 
     wire [15:0] d_i_pc_B, d2x_pc_B, x2m_pc_B, m2w_pc_B, w_o_pc_B;
     wire [15:0] f2d_pc_plus_one_A, f2d_pc_plus_two_A;
@@ -205,10 +203,9 @@ module lc4_processor(input wire         clk,             // main clock
     
     assign d2x_bus_A[15:0] = d2x_bus_tmp_A;
     assign d2x_bus_B[15:0] = d2x_bus_tmp_B;
-    // assign d2x_bus_final_B = ((LTU_A | LTU_B | x_br_taken_or_ctrl_A | x_br_taken_or_ctrl_B) == 1) ? {34{1'b0}} : d2x_bus_B;
 
 
-    // Regiters for A, B, O, D //
+    // ****** Regiters for A, B, O, D (Intermediate ALU/Data Registers) ****** //
     wire [15:0] x_A_i_A, x_A_o_A, x_B_i_A, x_B_o_A,
                 m_B_o_A, m_O_i_A, m_O_o_A, 
                 w_O_o_A, w_D_i_A, w_D_o_A;
