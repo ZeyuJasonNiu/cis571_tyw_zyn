@@ -96,7 +96,7 @@ module lc4_processor(input wire         clk,             // main clock
     & ~((((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24]) | ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_B[27:25])))    // nullified
     | ((x2m_bus_A[19] & (((d2x_bus_B[33:31] == x2m_bus_A[27:25]) & d2x_bus_B[24]) | ((d2x_bus_B[30:28] == x2m_bus_A[27:25]) & !d2x_bus_B[18] &d2x_bus_B[23])) ) 
     & ~((((d2x_bus_A[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] )| ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & d2x_bus_A[22] & (d2x_bus_A[27:25] == x2m_bus_A[27:25])) // Nullified;  
-    & ~(( ((x2m_bus_B[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] )| ((x2m_bus_B[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & x2m_bus_B[22] & (x2m_bus_B[27:25] == x2m_bus_A[27:25])))  ;   
+    & ~(( ((x2m_bus_B[27:25] == d2x_bus_B[33:31]) & d2x_bus_B[24] )| ((x2m_bus_B[27:25] == d2x_bus_B[30:28]) & d2x_bus_B[23])) & x2m_bus_B[22] & (x2m_bus_B[27:25] == x2m_bus_A[27:25])));   
 
     assign B_need_A =   ((d2x_bus_A[27:25] == d2x_bus_B[33:31]) && d2x_bus_B[24] && d2x_bus_A[22]) || 
                         ((d2x_bus_A[27:25] == d2x_bus_B[30:28]) && d2x_bus_B[23] && ~d2x_bus_B[18] && d2x_bus_A[22]) || 
