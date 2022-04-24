@@ -496,6 +496,8 @@ module lc4_processor(input wire         clk,             // main clock
     assign test_regfile_data_B =  write_back_B;
     assign test_nzp_we_A = w_o_bus_A[21];
     assign test_nzp_we_B = w_o_bus_B[21];
+
+    
    /* Add $display(...) calls in the always block below to
     * print out debug information at the end of every cycle.
     *
