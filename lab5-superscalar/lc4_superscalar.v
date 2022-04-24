@@ -537,7 +537,7 @@ module lc4_processor(input wire         clk,             // main clock
         // $display("m_O_o_A %h, m_O_o_B %h, write_back_A %h, write_back_B %h, x_A_o_A %h \n" ,m_O_o_A, m_O_o_B, write_back_A, write_back_B, x_A_o_A);
         $display("test_dmem_data_A %h, test_dmem_data_B %h, test_regfile_data_A %h, test_regfile_data_B %h \n", test_dmem_data_A, test_dmem_data_B, test_regfile_data_A, test_regfile_data_B);
         $display("WRITEBACK_A: w_o_pc_plus_one_A %h, w_D_o_A %h, w_O_o_A %h \n", w_o_pc_plus_one_A, w_D_o_A, w_O_o_A);
-        $display("WRITEBACK_B: MM_bypass %h\n", MM_Bypass);
+        $display("WRITEBACK_B: MM_bypass %h\n", MA_MB_bypass);
         $display("WRITEBACK_B: w_o_pc_plus_one_B %h, w_D_o_B %h, w_O_o_B %h \n", w_o_pc_plus_one_B, w_D_o_B, w_O_o_B);
         // $display("LTU_A %b, LTBr_A %b, LTU_B %b, LTBr_B %b, B_need_A %b, mem_hazard %b, d_stall_i_A %b, d_stall_i_B %b \n", LTU_A, LTBr_A, LTU_B, LTBr_B, B_need_A, mem_hazard, d_stall_i_A, d_stall_i_B);
         // $display("LTU_within_A %b, LTU_between_XB_DA %b \n", LTU_within_A, LTU_between_XB_DA);
