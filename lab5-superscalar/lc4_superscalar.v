@@ -73,16 +73,16 @@ module lc4_processor(input wire         clk,             // main clock
     
     assign LTU_between_XB_DA = (x2m_bus_B[19]) && 
                                (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
-                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (~d2x_bus_A[18])));
+                               ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_B[27:25]) && (!d2x_bus_A[18])));
     assign LTU_A_tmp1 =     (x2m_bus_B[22]) && 
                             ( (d2x_bus_A[24] && (d2x_bus_A[33:31] == x2m_bus_B[27:25])) || 
                             ( d2x_bus_A[23] && (d2x_bus_A[30:28] == x2m_bus_B[27:25])) ) && 
                             (x2m_bus_A[27:25] == x2m_bus_B[27:25]);
     
-    assign LTU_within_A = (x2m_bus_A[19]) && 
+    assign LTU_within_A = ((x2m_bus_A[19]) && 
                           (((d2x_bus_A[24]) && (d2x_bus_A[33:31] == x2m_bus_A[27:25])) || 
-                          ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (~d2x_bus_A[18]))) &&
-                          (~LTU_A_tmp1);
+                          ((d2x_bus_A[23]) && (d2x_bus_A[30:28] == x2m_bus_A[27:25]) && (!d2x_bus_A[18]))) &&
+                          (~LTU_A_tmp1));
 
     // assign LTU_within_B = (x2m_bus_B[19]) && 
     //                       (((d2x_bus_B[24]) && (d2x_bus_B[33:31] == x2m_bus_B[27:25])) || 
